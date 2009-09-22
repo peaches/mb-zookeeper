@@ -162,6 +162,7 @@ static VALUE method_get(VALUE self, VALUE path) {
 		     array_from_stat(&stat));
 }
 
+
 static VALUE method_set(VALUE self, VALUE path, VALUE data, VALUE version) {
   struct zk_rb_data* zk;
 
