@@ -1,15 +1,15 @@
 module Zk
 
-  Stat = com.yahoo.zookeeper.data.Stat
+  Stat = org.apache.zookeeper.data.Stat
   class Stat
     def to_a
       [getCzxid, getMzxid, getCtime, getMtime, getVersion, getCversion, getAversion, getEphemeralOwner]
     end
   end
 
-  Id = com.yahoo.zookeeper.data.Id
+  Id = org.apache.zookeeper.data.Id
 
-  ACL = com.yahoo.zookeeper.data.ACL
+  ACL = org.apache.zookeeper.data.ACL
   class ACL
     
     def self.to_java(acl)
@@ -22,7 +22,7 @@ module Zk
 
   end
   
-  class WatcherEvent < com.yahoo.zookeeper.proto.WatcherEvent; end
+  class WatcherEvent < org.apache.zookeeper.proto.WatcherEvent; end
   
   module Watcher
     
@@ -40,7 +40,7 @@ module Zk
   
   module AsyncCallback
     # you'd think this would work!!!   how do i refer to nested interface??
-    # JavaUtilities.extend_proxy("com.yahoo.zookeeper.AsyncCallback.StringCallback") do
+    # JavaUtilities.extend_proxy("org.apache.zookeeper.AsyncCallback.StringCallback") do
     #   alias process_result processResult
     # end
   

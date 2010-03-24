@@ -1,18 +1,18 @@
 include Java
 
-require 'zookeeper_j/zookeeper-dev.jar'
+require 'zookeeper_j/zookeeper-3.2.2.jar'
 require 'zookeeper_j/log4j-1.2.15.jar'
 require 'zookeeper_j/extensions'
 
 class DefaultWatcher
-  import com.yahoo.zookeeper.Watcher
+  import org.apache.zookeeper.Watcher
   def process(event)
     puts "#{event.class} received --- with path = #{event.get_path} --- state = #{ZooKeeper::CONNECTION_STATES[event.get_state]} --- type = #{ZooKeeper::EVENT_TYPES[event.get_type]}"
   end
 end
 
-JZooKeeper = com.yahoo.zookeeper.ZooKeeper
-ZooDefs = com.yahoo.zookeeper.ZooDefs
+JZooKeeper = org.apache.zookeeper.ZooKeeper
+ZooDefs = org.apache.zookeeper.ZooDefs
 
 class ZooKeeper < JZooKeeper
   
