@@ -7,7 +7,13 @@ require 'zookeeper_j/extensions'
 class DefaultWatcher
   import org.apache.zookeeper.Watcher
   def process(event)
-    puts "#{event.class} received --- with path = #{event.get_path} --- state = #{ZooKeeper::CONNECTION_STATES[event.get_state]} --- type = #{ZooKeeper::EVENT_TYPES[event.get_type]}"
+    path = nil
+    path = event.get_path 
+    msg = "#{event.class} received"
+    msg += " path = #{path}" if path
+    msg += " state = #{Zk::KEEPER_STATES[event.get_state]}"
+    msg += " type = #{Zk::EVENT_TYPES[event.get_type]}"
+    puts msg
   end
 end
 
@@ -86,15 +92,15 @@ class ZooKeeper < JZooKeeper
   #   # => "/path"
   #
   # ===== create ephemeral node
-  #   zk.create(:path => "/path", :data => "foo", :ephemeral => true)
+  #   zk.create(:path => "/path", :data => "foo", :mode => :ephemeral)
   #   # => "/path"
   #
   # ===== create sequential node
-  #   zk.create(:path => "/path", :data => "foo", :sequence => true)
+  #   zk.create(:path => "/path", :data => "foo", :mode => :persistent_sequence)
   #   # => "/path0"
   #
   # ===== create ephemeral and sequential node
-  #   zk.create(:path => "/path", :data => "foo", :ephemeral => true, :sequence => true)
+  #   zk.create(:path => "/path", :data => "foo", :mode => :ephemeral_sequence)
   #   # => "/path0"
   #
   # ===== create a child path
@@ -102,7 +108,7 @@ class ZooKeeper < JZooKeeper
   #   # => "/path/child"
   #
   # ===== create a sequential child path
-  #   zk.create(:path => "/path/child", :data => "bar", :sequence => true)
+  #   zk.create(:path => "/path/child", :data => "bar", :mode => :ephemeral_sequence)
   #   # => "/path/child0"
   #
   # ===== create asynchronously with callback object
@@ -132,21 +138,23 @@ class ZooKeeper < JZooKeeper
   def create(args)
     path     = args[:path]
     data     = args[:data]
-    acl      = args[:acl] || ZooKeeper::ACL::OPEN_ACL_UNSAFE
-    flags    = 0
-    flags    |= ZooDefs::CreateFlags::EPHEMERAL if args[:ephemeral]
-    flags    |= ZooDefs::CreateFlags::SEQUENCE  if args[:sequence]
+    acls     = args[:acl] || ZooKeeper::ACL::OPEN_ACL_UNSAFE
     callback = args[:callback]
     context  = args[:context]
-    
+    mode     = args[:mode] || :ephemeral
+
+    java_acls = acls.collect{|acl| Zk::ACL.to_java(acl)}
+    java_mode = Zk::CreateMode.to_java(mode)
+
     if callback
       callback.extend Zk::AsyncCallback::StringCallback unless callback.is_a?(Proc) || callback.respond_to?(:processResult)
-      super(path, data.to_java_bytes, acl.collect {|acl| Zk::ACL.to_java(acl)}, flags, callback, context)
+      super(path, data.to_java_bytes, java_acls, java_mode, callback, context)
     else
-      super(path, data.to_java_bytes, acl.collect {|acl| Zk::ACL.to_java(acl)}, flags)
+      super(path, data.to_java_bytes, java_acls, java_mode)
     end
   rescue Exception => e
-    raise KeeperException.by_code(e.code)
+    raise KeeperException.by_code(e.code) if e.respond_to?('code')
+    raise e
   end
 
   # Return the data and stat of the node of the given path.  
@@ -178,16 +186,25 @@ class ZooKeeper < JZooKeeper
   #       # do processing here
   #     end
   #   end
+  #
+  #   zk.get(:path => "/path") do |return_code, path, context, data, stat|
+  #     # do processing here
+  #   end
   #  
   #   callback = DataCallback.new
   #   context = Object.new
   #   zk.get(:path => "/path", :callback => callback, :context => context)
-  def get(args)
-    args  = {:path => args} unless args.is_a?(Hash)
-    path     = args[:path]
-    watch    = args[:watch] || false
-    callback = args[:callback]
-    context  = args[:context]
+  #
+  def get(*args, &block)
+    opts  = args.extract_options!
+    opts  = {:path => opts} unless opts.is_a?(Hash)
+    path     = opts[:path]
+    context  = opts[:context]
+    watch    = opts[:watch] || false
+
+    callback = opts[:callback]
+    callback = block if not block.nil?
+
     stat     = Zk::Stat.new
 
     if callback
@@ -500,16 +517,16 @@ class ZooKeeper < JZooKeeper
   # TBA - waiting on clarification of method use
   def set_acl(args)
     path     = args[:path]
-    acl      = args[:acl]
+    acls     = args[:acl]
     version  = args[:version] || -1
     callback = args[:callback]
     context  = args[:context]
 
     if callback
       callback.extend AsyncCallback::StatCallback unless callback.is_a?(Proc) || callback.respond_to?(:processResult)
-      super(path, acl.collect {|acl| Zk::ACL.to_java(acl)}, version, callback, context)
+      super(path, acls.collect{|acl| Zk::ACL.to_java(acl)}, version, callback, context)
     else
-      super(path, acl.collect {|acl| Zk::ACL.to_java(acl)}, version)
+      super(path, acls.collect{|acl| Zk::ACL.to_java(acl)}, version)
     end
   rescue Exception => e
     raise KeeperException.by_code(e.code)

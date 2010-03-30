@@ -1,9 +1,46 @@
 module Zk
 
+  # Map ZooKeeper States and Event Types to Ruby constants
+  create_modes = {}
+  org.apache.zookeeper.CreateMode.constants.each do |mode|
+    enum = org.apache.zookeeper.CreateMode.value_of(mode)
+    create_modes[enum] = mode
+  end
+  CREATE_MODES = create_modes
+
+  connection_states = {}
+  org.apache.zookeeper.ZooKeeper::States.constants.each do |state|
+    enum = org.apache.zookeeper.ZooKeeper::States.value_of(state)
+    connection_states[enum] = state
+  end
+  CONNECTION_STATES = connection_states
+
+  keeper_states = {}
+  org.apache.zookeeper.Watcher::Event::KeeperState.constants.each do |state|
+    enum = org.apache.zookeeper.Watcher::Event::KeeperState.value_of(state)
+    keeper_states[enum] = state
+  end
+  KEEPER_STATES = keeper_states
+
+  event_types = {}
+  org.apache.zookeeper.Watcher::Event::EventType.constants.each do |event_type|
+    enum = org.apache.zookeeper.Watcher::Event::EventType.value_of(event_type)
+    event_types[enum] = event_type
+  end
+  EVENT_TYPES = event_types
+
+
   Stat = org.apache.zookeeper.data.Stat
   class Stat
     def to_a
       [getCzxid, getMzxid, getCtime, getMtime, getVersion, getCversion, getAversion, getEphemeralOwner]
+    end
+  end
+
+  CreateMode = org.apache.zookeeper.CreateMode
+  class CreateMode
+    def self.to_java(symbol)
+        CreateMode.value_of(symbol.to_s.upcase)
     end
   end
 
@@ -22,7 +59,7 @@ module Zk
 
   end
   
-  class WatcherEvent < org.apache.zookeeper.proto.WatcherEvent; end
+  class WatchedEvent < org.apache.zookeeper::WatchedEvent; end
   
   module Watcher
     
@@ -34,7 +71,7 @@ module Zk
     end
     
     def process_with_conv(event)
-      process_without_conv(ZooKeeper::WatcherEvent.new(event.type, event.state, event.path))
+      process_without_conv(WatchedEvent.new(event.type, event.state, event.path))
     end
   end
   
@@ -75,8 +112,8 @@ module Zk
     end
 
     module AclCallback
-      def processResult(return_code, path, context, acl, stat)
-        process_result(return_code, path, context, acl.collect {|acl| acl.to_ruby}, ZooKeeper::Stat.new(stat.to_a))
+      def processResult(return_code, path, context, acls, stat)
+        process_result(return_code, path, context, acls.collect{|acl| acl.to_ruby}, ZooKeeper::Stat.new(stat.to_a))
       end
     end
 
