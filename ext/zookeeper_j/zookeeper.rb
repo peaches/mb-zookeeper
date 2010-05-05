@@ -195,8 +195,7 @@ class ZooKeeper < JZooKeeper
   #   context = Object.new
   #   zk.get(:path => "/path", :callback => callback, :context => context)
   #
-  def get(*args, &block)
-    opts  = args.extract_options!
+  def get(opts, &block)
     opts  = {:path => opts} unless opts.is_a?(Hash)
     path     = opts[:path]
     context  = opts[:context]
@@ -213,8 +212,7 @@ class ZooKeeper < JZooKeeper
     else
       [String.from_java_bytes(getData(path, watch, stat)), Stat.new(stat.to_a)]
     end
-  rescue Exception => e
-    raise KeeperException.by_code(e.code)
+  
   end
   
   
