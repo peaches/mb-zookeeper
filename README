@@ -4,15 +4,15 @@ I had a lot of trouble with the original so I forked this off http://github.com/
 Unfortunately, it appears all the specs are broken and the interface has changed.
 Ephemeral is now the default.
 create "mode" can now be any one of: :persistent_sequential, :ephemeral_sequential, :persistent, :ephemeral
-
+default is :ephemeral
 so creates look like this:
 
-@zk.create(:path => "/test", :data => "test_data", :mode => :persistent)
-
-gets also need a :path in them instead of just the string so...
-@zk.get(:path => "/test")
+@zk.create("/test", "test_data", :mode => :persistent)
 
 More info can be found in ext/zookeeper_j/zookeeper.rb
+
+=== INSTALLING THIS FORK (tobowers):
+
 
 
 zookeeper
@@ -21,7 +21,7 @@ zookeeper
 
 == DESCRIPTION:
 
-Ruby Interface to Yahoo's ZooKeeper http://zookeeper.wiki.sourceforge.net/
+Ruby Interface to Apache's ZooKeeper http://zookeeper.wiki.sourceforge.net/
 
 
 == FEATURES/PROBLEMS:

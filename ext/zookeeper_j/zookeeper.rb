@@ -1,7 +1,7 @@
 include Java
 
 require 'zookeeper_j/zookeeper-3.2.2.jar'
-require 'zookeeper_j/log4j-1.2.15.jar'
+#require 'zookeeper_j/log4j-1.2.15.jar'
 require 'zookeeper_j/extensions'
 
 class DefaultWatcher
@@ -78,8 +78,8 @@ class ZooKeeper < JZooKeeper
   # Called with a hash of arguments set.  Supports being executed asynchronousy by passing a callback object.
   # 
   # ==== Arguments
-  # * <tt>:path</tt> -- path of the node
-  # * <tt>:data</tt> -- initial data for the node
+  # * <tt>path</tt> -- path of the node
+  # * <tt>data</tt> -- initial data for the node
   # * <tt>:acl</tt> -- defaults to ACL::OPEN_ACL_UNSAFE, otherwise the ACL for the node
   # * <tt>:ephemeral</tt> -- defaults to false, if set to true the created node will be ephemeral
   # * <tt>:sequence</tt> -- defaults to false, if set to true the created node will be sequential
@@ -88,27 +88,27 @@ class ZooKeeper < JZooKeeper
   # 
   # ==== Examples
   # ===== create node, ACL will default to ACL::OPEN_ACL_UNSAFE
-  #   zk.create(:path => "/path", :data => "foo")
+  #   zk.create(:path => "/path", "foo")
   #   # => "/path"
   #
   # ===== create ephemeral node
-  #   zk.create(:path => "/path", :data => "foo", :mode => :ephemeral)
+  #   zk.create("/path", :mode => :ephemeral)
   #   # => "/path"
   #
   # ===== create sequential node
-  #   zk.create(:path => "/path", :data => "foo", :mode => :persistent_sequence)
+  #   zk.create("/path", :mode => :persistent_sequence)
   #   # => "/path0"
   #
   # ===== create ephemeral and sequential node
-  #   zk.create(:path => "/path", :data => "foo", :mode => :ephemeral_sequence)
+  #   zk.create("/path", "foo", :mode => :ephemeral_sequence)
   #   # => "/path0"
   #
   # ===== create a child path
-  #   zk.create(:path => "/path/child", :data => "bar")
+  #   zk.create("/path/child", "bar")
   #   # => "/path/child"
   #
   # ===== create a sequential child path
-  #   zk.create(:path => "/path/child", :data => "bar", :mode => :ephemeral_sequence)
+  #   zk.create("/path/child", "bar", :mode => :ephemeral_sequence)
   #   # => "/path/child0"
   #
   # ===== create asynchronously with callback object
@@ -122,7 +122,7 @@ class ZooKeeper < JZooKeeper
   #   callback = StringCallback.new
   #   context = Object.new
   #
-  #   zk.create(:path => "/path", :data => "foo", :callback => callback, :context => context)
+  #   zk.create("/path", "foo", :callback => callback, :context => context)
   #
   # ===== create asynchronously with callback proc
   #
@@ -132,12 +132,10 @@ class ZooKeeper < JZooKeeper
   #
   #   context = Object.new
   #
-  #   zk.create(:path => "/path", :data => "foo", :callback => callback, :context => context)
+  #   zk.create("/path", "foo", :callback => callback, :context => context)
   #
   # 
-  def create(args)
-    path     = args[:path]
-    data     = args[:data]
+  def create(path, data = "", args = {})
     acls     = args[:acl] || ZooKeeper::ACL::OPEN_ACL_UNSAFE
     callback = args[:callback]
     context  = args[:context]
@@ -167,7 +165,7 @@ class ZooKeeper < JZooKeeper
   # Can be called with just the path, otherwise a hash with the arguments set.  Supports being executed asynchronousy by passing a callback object.
   # 
   # ==== Arguments
-  # * <tt>:path</tt> -- path of the node
+  # * <tt>path</tt> -- path of the node
   # * <tt>:watch</tt> -- defaults to false, set to true if you need to watch this node
   # * <tt>:callback</tt> -- provide a AsyncCallback::DataCallback object or Proc for an asynchronous call to occur
   # * <tt>:context</tt> --  context object passed into callback method
@@ -177,7 +175,7 @@ class ZooKeeper < JZooKeeper
   #   zk.get("/path")
   #   
   # ===== get data and set watch on node
-  #   zk.get(:path => "/path", :watch => true)
+  #   zk.get("/path", :watch => true)
   #
   # ===== get data asynchronously
   #
@@ -187,17 +185,15 @@ class ZooKeeper < JZooKeeper
   #     end
   #   end
   #
-  #   zk.get(:path => "/path") do |return_code, path, context, data, stat|
+  #   zk.get("/path") do |return_code, path, context, data, stat|
   #     # do processing here
   #   end
   #  
   #   callback = DataCallback.new
   #   context = Object.new
-  #   zk.get(:path => "/path", :callback => callback, :context => context)
+  #   zk.get("/path", :callback => callback, :context => context)
   #
-  def get(opts, &block)
-    opts  = {:path => opts} unless opts.is_a?(Hash)
-    path     = opts[:path]
+  def get(path, opts = {}, &block)
     context  = opts[:context]
     watch    = opts[:watch] || false
 
@@ -224,7 +220,7 @@ class ZooKeeper < JZooKeeper
   # Can be called with just the path, otherwise a hash with the arguments set.  Supports being executed asynchronousy by passing a callback object.
   # 
   # ==== Arguments
-  # * <tt>:path</tt> -- path of the node
+  # * <tt>path</tt> -- path of the node
   # * <tt>:watch</tt> -- defaults to false, set to true if you need to watch this node
   # * <tt>:callback</tt> -- provide a AsyncCallback::StatCallback object or Proc for an asynchronous call to occur
   # * <tt>:context</tt> --  context object passed into callback method
@@ -235,7 +231,7 @@ class ZooKeeper < JZooKeeper
   #   # => ZooKeeper::Stat
   #
   # ===== exists for path with watch set
-  #   zk.exists(:path => "/path", :watch => true)
+  #   zk.exists("/path", :watch => true)
   #   # => ZooKeeper::Stat
   #
   # ===== exists for non existent path
@@ -253,10 +249,8 @@ class ZooKeeper < JZooKeeper
   #   callback = StatCallback.new
   #   context = Object.new
   #
-  #   zk.exists(:path => "/path", :callback => callback, :context => context)
-  def exists(args)
-    args  = {:path => args} unless args.is_a?(Hash)
-    path     = args[:path]
+  #   zk.exists("/path", :callback => callback, :context => context)
+  def exists(path, args = {})
     watch    = args[:watch] || false
     callback = args[:callback]
     context  = args[:context]
@@ -289,8 +283,8 @@ class ZooKeeper < JZooKeeper
   # * <tt>:context</tt> --  context object passed into callback method
   # 
   # ==== Examples
-  #   zk.set(:path => "/path", :data => "foo")
-  #   zk.set(:path => "/path", :data => "foo", :version => 0)
+  #   zk.set("/path", "foo")
+  #   zk.set("/path", "foo", :version => 0)
   #
   # ===== set data asynchronously
   #
@@ -303,10 +297,8 @@ class ZooKeeper < JZooKeeper
   #   callback = StatCallback.new
   #   context = Object.new
   #
-  #   zk.set(:path => "/path", :data => "foo", :callback => callback, :context => context)
-  def set(args)
-    path     = args[:path]
-    data     = args[:data]
+  #   zk.set("/path", "foo", :callback => callback, :context => context)
+  def set(path, data = "", args = {})
     version  = args[:version] || -1
     callback = args[:callback]
     context  = args[:context]
@@ -336,14 +328,14 @@ class ZooKeeper < JZooKeeper
   # Can be called with just the path, otherwise a hash with the arguments set.  Supports being executed asynchronousy by passing a callback object.
   # 
   # ==== Arguments
-  # * <tt>:path</tt> -- path of the node to be deleted
+  # * <tt>path</tt> -- path of the node to be deleted
   # * <tt>:version</tt> -- defaults to -1, otherwise set to the expected matching version
   # * <tt>:callback</tt> -- provide a AsyncCallback::VoidCallback object or Proc for an asynchronous call to occur
   # * <tt>:context</tt> --  context object passed into callback method
   # 
   # ==== Examples
   #   zk.delete("/path")
-  #   zk.delete(:path => "/path", :version => 0)
+  #   zk.delete("/path", :version => 0)
   #
   # ===== delete node asynchronously
   #
@@ -356,10 +348,8 @@ class ZooKeeper < JZooKeeper
   #   callback = VoidCallback.new
   #   context = Object.new
   #
-  #   zk.delete(:path => "/path", :callback => callback, :context => context)
-  def delete(args)
-    args = {:path => args} unless args.is_a?(Hash)
-    path     = args[:path]
+  #   zk.delete(/path", :callback => callback, :context => context)
+  def delete(path, args = {})
     version  = args[:version] || -1
     callback = args[:callback]
     context  = args[:context]
@@ -382,21 +372,21 @@ class ZooKeeper < JZooKeeper
   # Can be called with just the path, otherwise a hash with the arguments set.  Supports being executed asynchronousy by passing a callback object.
   # 
   # ==== Arguments
-  # * <tt>:path</tt> -- path of the node
+  # * <tt>path</tt> -- path of the node
   # * <tt>:watch</tt> -- defaults to false, set to true if you need to watch this node
   # * <tt>:callback</tt> -- provide a AsyncCallback::ChildrenCallback object or Proc for an asynchronous call to occur
   # * <tt>:context</tt> --  context object passed into callback method
   # 
   # ==== Examples
   # ===== get children for path
-  #   zk.create(:path => "/path", :data => "foo")
-  #   zk.create(:path => "/path/child", :data => "child1", :sequence => true)
-  #   zk.create(:path => "/path/child", :data => "child2", :sequence => true)
+  #   zk.create("/path", :data => "foo")
+  #   zk.create("/path/child", :data => "child1", :sequence => true)
+  #   zk.create("/path/child", :data => "child2", :sequence => true)
   #   zk.children("/path")
   #   # => ["child0", "child1"]
   #
   # ====== get children and set watch
-  #   zk.children(:path => "/path", :watch => true)
+  #   zk.children("/path", :watch => true)
   #   # => ["child0", "child1"]
   #
   # ===== get children asynchronously
@@ -409,10 +399,8 @@ class ZooKeeper < JZooKeeper
   #  
   #   callback = ChildrenCallback.new
   #   context = Object.new
-  #   zk.children(:path => "/path", :callback => callback, :context => context)
-  def children(args)
-    args    = {:path => args} unless args.is_a?(Hash)
-    path     = args[:path]
+  #   zk.children("/path", :callback => callback, :context => context)
+  def children(path, args = {})
     watch    = args[:watch] || false
     callback = args[:callback]
     context  = args[:context]
@@ -432,7 +420,7 @@ class ZooKeeper < JZooKeeper
   # Can be called with just the path, otherwise a hash with the arguments set.  Supports being executed asynchronousy by passing a callback object.
   # 
   # ==== Arguments
-  # * <tt>:path</tt> -- path of the node
+  # * <tt>path</tt> -- path of the node
   # * <tt>:stat</tt> -- defaults to nil, provide a Stat object that will be set with the Stat information of the node path
   # * <tt>:callback</tt> -- provide a AsyncCallback::AclCallback object or Proc for an asynchronous call to occur
   # * <tt>:context</tt> --  context object passed into callback method
@@ -444,7 +432,7 @@ class ZooKeeper < JZooKeeper
   #
   # ===== get acl with stat
   #   stat = ZooKeeper::Stat.new
-  #   zk.acls(:path => "/path", :stat => stat)
+  #   zk.acls("/path", :stat => stat)
   #
   # ===== get acl asynchronously
   #
@@ -456,10 +444,8 @@ class ZooKeeper < JZooKeeper
   #  
   #   callback = AclCallback.new
   #   context = Object.new
-  #   zk.acls(:path => "/path", :callback => callback, :context => context)
-  def acls(args)
-    args  = {:path => args} unless args.is_a?(Hash)
-    path     = args[:path]
+  #   zk.acls("/path", :callback => callback, :context => context)
+  def acls(path, args = {})
     callback = args[:callback]
     context  = args[:context]
     stat     = Zk::Stat.new
@@ -490,9 +476,8 @@ class ZooKeeper < JZooKeeper
   # 
   # ==== Examples
   #   zk.add_auth_info(:scheme => "digest", :auth => "ben:password")
-  def add_auth_info(args)
-    scheme = args[:scheme]
-    auth   = args[:auth]
+  def add_auth_info(auth, args = {})
+    scheme = args[:scheme] || "digest"
     super(scheme, auth.to_java_bytes)
   end
 
@@ -505,7 +490,7 @@ class ZooKeeper < JZooKeeper
   # Called with a hash of arguments set.  Supports being executed asynchronousy by passing a callback object.
   # 
   # ==== Arguments
-  # * <tt>:path</tt> -- path of the node
+  # * <tt>path</tt> -- path of the node
   # * <tt>:acl</tt> -- acl to set
   # * <tt>:version</tt> -- defaults to -1, otherwise set to the expected matching version
   # * <tt>:callback</tt> -- provide a AsyncCallback::StatCallback object or Proc for an asynchronous call to occur
@@ -513,8 +498,7 @@ class ZooKeeper < JZooKeeper
   # 
   # ==== Examples
   # TBA - waiting on clarification of method use
-  def set_acl(args)
-    path     = args[:path]
+  def set_acl(path, args = {})
     acls     = args[:acl]
     version  = args[:version] || -1
     callback = args[:callback]

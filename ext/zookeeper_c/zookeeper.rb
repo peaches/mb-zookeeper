@@ -1,12 +1,14 @@
 require 'zookeeper_c'
 
-class ZooKeeper < CZooKeeper
-  
+class ZooKeeper < CZookeeper
+
+  attr_accessor :watcher
+
   def initialize(args)
     args  = {:host => args} unless args.is_a?(Hash)
     host    = args[:host]
     # timeout = args[:timeout] || DEFAULTS[:timeout]
-    # watcher = args[:watcher] || DefaultWatcher.new
+    #@watcher = args[:watcher] || DefaultWatcher.new
     # super(host, timeout, watcher)
     super(host)
     @watchers = {} # path => [ block, block, ... ]
@@ -23,6 +25,10 @@ class ZooKeeper < CZooKeeper
   def close
     # TODO
   end
+
+  def watcher(*args)
+    puts args.inspect
+  end
   
   def create(args)
     path     = args[:path]
@@ -33,9 +39,8 @@ class ZooKeeper < CZooKeeper
     super(path, data, flags)
   end
 
-  def exists(path, &blk)
-    (@watchers[path] ||= []) << blk if blk
-    Stat.new(super(path, !!blk))
+  def exists(path, watch = true)
+    Stat.new(super(path, watch))
   rescue NoNodeError
     return nil
   end
