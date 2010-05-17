@@ -24,7 +24,7 @@ class ZooKeeper < CZookeeper
   end
   
   def connected?
-    state == CONNECTED_STATE
+    state == ZOO_CONNECTED_STATE
   end
   
   def closed?
@@ -90,12 +90,12 @@ private
     flags = 0 #zero means persistent, non-sequential
     case mode
       when :persistent_sequential
-        flags |= SEQUENCE
+        flags |= ZOO_SEQUENCE
       when :ephemeral
-        flags |= EPHEMERAL
+        flags |= ZOO_EPHEMERAL
       when :ephemeral_sequential
-        flags |= SEQUENCE
-        flags |= EPHEMERAL
+        flags |= ZOO_SEQUENCE
+        flags |= ZOO_EPHEMERAL
     end
     flags
   end

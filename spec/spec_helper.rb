@@ -6,13 +6,13 @@ require 'spec/zookeeper_test_server'
 
 Spec::Runner.configure do |config|  
   config.before(:each) do
-    ZooKeeperTestServer.start
-    wait_until { ZooKeeperTestServer.running? }
+#    ZooKeeperTestServer.start
+#    wait_until { ZooKeeperTestServer.running? }
   end
 
   config.after(:each) do
-    ZooKeeperTestServer.stop
-    wait_until { !ZooKeeperTestServer.running? }
+#    ZooKeeperTestServer.stop
+#    wait_until { !ZooKeeperTestServer.running? }
   end
 end
 

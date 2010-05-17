@@ -46,7 +46,9 @@ static void check_errors(int rc) {
 }
 
 static void free_zk_rb_data(struct zk_rb_data* ptr) {
-  zookeeper_close(ptr->zh);
+  if (ptr->zh) {
+      zookeeper_close(ptr->zh);    
+  }
 }
 
 static VALUE array_from_stat(const struct Stat* stat) {
@@ -159,26 +161,15 @@ static VALUE method_get(VALUE self, VALUE path, VALUE watch) {
 		     array_from_stat(&stat));
 }
 
-static VALUE method_set(int argc, VALUE* argv, VALUE self)
+static VALUE method_set(VALUE self, VALUE path, VALUE data, VALUE version)
 {
-  VALUE v_path, v_data, v_version;
-  int real_version = -1;
 
   FETCH_DATA_PTR(self, zk);
 
-  rb_scan_args(argc, argv, "21", &v_path, &v_data, &v_version);
-
-  Check_Type(v_path, T_STRING);
-  Check_Type(v_data, T_STRING);
-  Check_Type(v_version, T_FIXNUM);
-
-  if(!NIL_P(v_version))
-    real_version = FIX2INT(v_version);
-
   check_errors(zoo_set(zk->zh,
-                       RSTRING(v_path)->ptr,
-                       RSTRING(v_data)->ptr, RSTRING(v_data)->len,
-                       FIX2INT(v_version)));
+                       RSTRING(path)->ptr,
+                       RSTRING(data)->ptr, RSTRING(data)->len,
+                       FIX2INT(version)));
 
   return Qtrue;
 }
