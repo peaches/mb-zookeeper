@@ -14,11 +14,11 @@ Gem::Specification.new do |s|
     
   case RUBY_PLATFORM
   when /java/
-     s.files += ["ext/zookeeper_j/log4j-1.2.15.jar", "ext/zookeeper_j/zookeeper-3.2.2.jar",
+     s.files += ["ext/zookeeper_j/log4j-1.2.15.jar", "ext/zookeeper_j/zookeeper-3.3.1.jar",
                  "ext/zookeeper_j/extensions.rb", "ext/zookeeper_j/zookeeper.rb"]
      s.platform = 'jruby'
   else
-     s.files += ["ext/zookeeper_c/zookeeper_ruby.c", "ext/zookeeper_c/zookeeper.rb", "ext/zookeeper_c/zkc-3.2.2.tar.gz"]
+     s.files += ["ext/zookeeper_c/zookeeper_ruby.c", "ext/zookeeper_c/zookeeper.rb", "ext/zookeeper_c/zkc-3.3.1.tar.gz"]
      s.extensions = ["ext/zookeeper_c/extconf.rb"]
   end
   s.homepage = %q{http://github.com/tobowers/zookeeper/tree/master}

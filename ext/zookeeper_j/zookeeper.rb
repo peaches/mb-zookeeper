@@ -1,7 +1,7 @@
 include Java
 
-require 'zookeeper_j/zookeeper-3.2.2.jar'
-#require 'zookeeper_j/log4j-1.2.15.jar'
+require 'zookeeper_j/zookeeper-3.3.1.jar'
+require 'zookeeper_j/log4j-1.2.15.jar'
 require 'zookeeper_j/extensions'
 
 class DefaultWatcher
@@ -13,7 +13,7 @@ class DefaultWatcher
     msg += " path = #{path}" if path
     msg += " state = #{Zk::KEEPER_STATES[event.get_state]}"
     msg += " type = #{Zk::EVENT_TYPES[event.get_type]}"
-    puts msg
+    $stderr.puts msg
   end
 end
 
@@ -34,9 +34,7 @@ class ZooKeeper < JZooKeeper
   #   zk = ZooKeeper.new("localhost:2181,localhost:3000")
   #   zk = ZooKeeper.new(:host => "localhost:2181", :watcher => MyWatcher.new)
   #   zk = ZooKeeper.new(:host => "localhost:2181,localhost:3000", :timeout => 10000, :watcher => MyWatcher.new)
-  def initialize(args)
-    args  = {:host => args} unless args.is_a?(Hash)
-    host    = args[:host]
+  def initialize(host, args = {})
     timeout = args[:timeout] || DEFAULTS[:timeout]
     watcher = args[:watcher] || DefaultWatcher.new
     watcher.extend Zk::Watcher   

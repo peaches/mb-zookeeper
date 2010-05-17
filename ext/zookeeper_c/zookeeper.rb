@@ -1,8 +1,14 @@
 require 'zookeeper_c'
 
 class DefaultWatcher
+  attr_accessor :events
+
+  def initialize
+    @events = []
+  end
+
   def process(event)
-    puts event.inspect
+    $stderr.puts event
   end
 end
 
@@ -26,15 +32,16 @@ class ZooKeeper < CZookeeper
   end
   
   def close
-    # TODO
+    super
   end
 
-  def watcher(*args)
+  def handle_watcher_event(*args)
     @watcher.process(ZooKeeper::WatcherEvent.new(*args)) if @watcher
   end
   
   def create(path, data = "", args = {})
-    super(path, data, flags_from_mode(args[:mode]))
+    mode = args[:mode] || :ephemeral
+    super(path, data, flags_from_mode(mode))
   end
 
   def exists(path, args = {})

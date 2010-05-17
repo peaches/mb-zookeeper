@@ -22,13 +22,9 @@ struct zk_rb_data {
 
 static void watcher(zhandle_t *zzh, int type, int state, const char *path, void *ctx) {
   VALUE self, watcher_id;
-  //(void)ctx;
-  //return; // watchers don't work in ruby yet
 
   self = (VALUE)zoo_get_context(zzh);;
-  watcher_id = rb_intern("watcher");
-
-  //fprintf(stderr,"C watcher %d state = %d for %s.\n", type, state, (path ? path: "null"));
+  watcher_id = rb_intern("handle_watcher_event");
   rb_funcall(self, watcher_id, 3, INT2FIX(type), INT2FIX(state), rb_str_new2(path));
 }
 

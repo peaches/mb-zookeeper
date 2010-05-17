@@ -13,7 +13,7 @@ class ZooKeeper
     def initialize(address)
       unless @@zk 
       	$LOG.info 'Connecting Zookeeper Client'
-        @@zk = ZooKeeper.new(:host => address, :timeout => 10000, :watcher => self)
+        @@zk = ZooKeeper.new(address, :timeout => 10000, :watcher => self)
         @@monitor = Monitor.new
         @@consume = @@monitor.new_cond
       	$LOG.info 'Zookeeper Client Started'

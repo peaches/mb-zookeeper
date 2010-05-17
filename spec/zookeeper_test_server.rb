@@ -3,7 +3,7 @@ class ZooKeeperTestServer
   @@log_level_set = false
   
   def self.running?
-    `ps | grep zookeeper`.include?("zookeeper-2.2.1")
+    `ps | grep zookeeper`.include?("zookeeper-3.3.1")
   end
 
   def self.start(background=true)
@@ -12,15 +12,15 @@ class ZooKeeperTestServer
     FileUtils.mkdir_p("/tmp/zookeeper/server1/data")
     if background
       thread = Thread.new do
-        `./spec/zookeeper-2.2.1/bin/zkServer.sh start`
+        `./spec/zookeeper-3.3.1/bin/zkServer.sh start`
       end
     else
-      `./spec/zookeeper-2.2.1/bin/zkServer.sh start`
+      `./spec/zookeeper-3.3.1/bin/zkServer.sh start`
     end
   end
 
   def self.stop
-    `./spec/zookeeper-2.2.1/bin/zkServer.sh stop`
+    `./spec/zookeeper-3.3.1/bin/zkServer.sh stop`
     FileUtils.remove_dir("/tmp/zookeeper", true)
   end
   

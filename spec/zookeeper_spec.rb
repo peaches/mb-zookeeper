@@ -3,7 +3,7 @@ require File.join(File.dirname(__FILE__), %w[spec_helper])
 describe ZooKeeper, "with no paths" do
 
   before(:each) do
-    @zk = ZooKeeper.new(:host => "localhost:2181", :watcher => SilentWatcher.new)
+    @zk = ZooKeeper.new("localhost:2181", :watcher => SilentWatcher.new)
     wait_until{ @zk.connected? }
   end
   
@@ -17,7 +17,7 @@ describe ZooKeeper, "with no paths" do
   end
 
   it "should create a path" do
-    @zk.create(:path => "/test", :data => "test_data").should == "/test"
+    @zk.create("/test", "test_data").should == "/test"
   end
   
   it "should raise an exception for a non existent path" do
@@ -25,30 +25,30 @@ describe ZooKeeper, "with no paths" do
   end
   
   it "should create a path with sequence set" do
-    @zk.create(:path => "/test", :data => "test_data", :sequence => true).should == "/test0"
+    @zk.create("/test", "test_data", :mode => :sequential).should == "/test0"
   end
   
   it "should create an ephemeral path" do
-    @zk.create(:path => "/test", :data => "test_data", :ephemeral => true).should == "/test"
+    @zk.create("/test", "test_data", :mode => :ephemeral).should == "/test"
   end
   
   it "should remove ephemeral path when client session ends" do
     pending('close Not implemented in MRI version yet') unless defined?(JRUBY_VERSION)
-    @zk.create(:path => "/test", :data => "test_data", :ephemeral => true).should == "/test"
+    @zk.create("/test", "test_data", :mode => :ephemeral).should == "/test"
     @zk.exists("/test").should_not be_nil
     @zk.close
   
-    @zk = ZooKeeper.new(:host => "localhost:2181", :watcher => SilentWatcher.new)
+    @zk = ZooKeeper.new("localhost:2181", :watcher => SilentWatcher.new)
     @zk.exists("/test").should be_nil
   end
   
   it "should remove sequential ephemeral path when client session ends" do
     pending('close Not implemented in MRI version yet') unless defined?(JRUBY_VERSION)
-    @zk.create(:path => "/test", :data => "test_data", :ephemeral => true, :sequence => true).should == "/test0"
+    @zk.create("/test", "test_data", :mode => :ephemeral_sequential).should == "/test0"
     @zk.exists("/test0").should_not be_nil
     @zk.close
   
-    @zk = ZooKeeper.new(:host => "localhost:2181", :watcher => SilentWatcher.new)
+    @zk = ZooKeeper.new("localhost:2181", :watcher => SilentWatcher.new)
     @zk.exists("/test0").should be_nil
   end
   
@@ -56,7 +56,7 @@ describe ZooKeeper, "with no paths" do
     pending('Not implemented in MRI version yet') unless defined?(JRUBY_VERSION)
     callback = MockStringCallback.new
     context = Time.new
-    @zk.create(:path => "/test", :data => "test_data", :callback => callback, :context => context)
+    @zk.create("/test", "test_data", :callback => callback, :context => context)
     wait_until { callback.process_result_completed? }
     callback.return_code.should == 0
     callback.path.should        == "/test"
@@ -69,9 +69,9 @@ end
 describe ZooKeeper, "with a path" do
   
   before(:each) do
-    @zk = ZooKeeper.new(:host => "localhost:2181", :watcher => SilentWatcher.new)
+    @zk = ZooKeeper.new("localhost:2181", :watcher => SilentWatcher.new)
     wait_until{ @zk.connected? }
-    @zk.create(:path => "/test", :data => "test_data")
+    @zk.create("/test", "test_data")
   end
   
   after(:each) do
@@ -84,20 +84,20 @@ describe ZooKeeper, "with a path" do
   end
   
   it "should get data and stat" do
-    data, stat = @zk.get(:path => "/test", :stat => stat)
+    data, stat = @zk.get("/test", :stat => stat)
     data.should == "test_data"
     stat.should be_a_kind_of(ZooKeeper::Stat)
     stat.created_time.should_not == 0
   end
   
   it "should set data" do
-    @zk.set(:path => "/test", :data => "foo")
+    @zk.set("/test", "foo")
     @zk.get("/test").first.should == "foo"
   end
   
   it "should set data with a file" do
     file = File.read('spec/test_file.txt')
-    @zk.set(:path => "/test", :data => file)
+    @zk.set("/test", file)
     @zk.get("/test").first.should == file
   end
   
@@ -107,12 +107,12 @@ describe ZooKeeper, "with a path" do
   end
   
   it "should create a child path" do
-    @zk.create(:path => "/test/child", :data => "child").should == "/test/child"
+    @zk.create("/test/child", "child").should == "/test/child"
   end
   
   it "should create sequential child paths" do
-    @zk.create(:path => "/test/child", :data => "child1", :sequence => true).should == "/test/child0"
-    @zk.create(:path => "/test/child", :data => "child2", :sequence => true).should == "/test/child1"
+    @zk.create("/test/child", "child1", :mode => :sequential).should == "/test/child0"
+    @zk.create("/test/child", "child2", :mode => :sequential).should == "/test/child1"
     @zk.children("/test").should eql(["child0", "child1"])
   end
   
@@ -124,7 +124,7 @@ describe ZooKeeper, "with a path" do
     pending('Not implemented in MRI version yet') unless defined?(JRUBY_VERSION)
     callback = MockVoidCallback.new
     context = Time.new
-    @zk.delete(:path => "/test", :callback => callback, :context => context)
+    @zk.delete("/test", :callback => callback, :context => context)
     wait_until { callback.process_result_completed? }
     callback.return_code.should == 0
     callback.path.should        == "/test"
@@ -135,7 +135,7 @@ describe ZooKeeper, "with a path" do
     pending('Not implemented in MRI version yet') unless defined?(JRUBY_VERSION)
     callback = MockStatCallback.new
     context = Time.new
-    @zk.exists(:path => "/test", :callback => callback, :context => context)
+    @zk.exists("/test", :callback => callback, :context => context)
     wait_until { callback.process_result_completed? }
     callback.return_code.should == 0
     callback.path.should        == "/test"
@@ -147,7 +147,7 @@ describe ZooKeeper, "with a path" do
     pending('Not implemented in MRI version yet') unless defined?(JRUBY_VERSION)
     callback = MockStatCallback.new
     context = Time.new
-    @zk.set(:path => "/test", :data => "foo", :callback => callback, :context => context)
+    @zk.set("/test", "foo", :callback => callback, :context => context)
     @zk.get("/test").first.should == "foo"
     wait_until { callback.process_result_completed? }
     callback.return_code.should == 0
@@ -160,7 +160,7 @@ describe ZooKeeper, "with a path" do
     pending('Not implemented in MRI version yet') unless defined?(JRUBY_VERSION)
     callback = MockDataCallback.new
     context = Time.new
-    @zk.get(:path => "/test", :callback => callback, :context => context).should be_nil
+    @zk.get("/test", :callback => callback, :context => context).should be_nil
     wait_until { callback.process_result_completed? }
     callback.return_code.should == 0
     callback.path.should        == "/test"
@@ -174,10 +174,10 @@ end
 describe ZooKeeper, "with children" do
 
   before(:each) do
-    @zk = ZooKeeper.new(:host => "localhost:2181", :watcher => SilentWatcher.new)
+    @zk = ZooKeeper.new("localhost:2181", :watcher => SilentWatcher.new)
     wait_until{ @zk.connected? }
-    @zk.create(:path => "/test", :data => "test_data")
-    @zk.create(:path => "/test/child", :data => "child").should == "/test/child"
+    @zk.create("/test", "test_data")
+    @zk.create("/test/child", "child").should == "/test/child"
   end
   
   after(:each) do
@@ -193,7 +193,7 @@ describe ZooKeeper, "with children" do
     pending('Not implemented in MRI version yet') unless defined?(JRUBY_VERSION)
     callback = MockChildrenCallback.new
     context = Time.new
-    @zk.children(:path => "/test", :callback => callback, :context => context).should be_nil
+    @zk.children("/test", :callback => callback, :context => context).should be_nil
     wait_until { callback.process_result_completed? }
     callback.return_code.should == 0
     callback.path.should        == "/test"
@@ -206,7 +206,7 @@ end
 describe ZooKeeper, "asynchronous create with no paths" do
   
   before(:each) do
-    @zk = ZooKeeper.new(:host => "localhost:2181", :watcher => SilentWatcher.new)
+    @zk = ZooKeeper.new("localhost:2181", :watcher => SilentWatcher.new)
     wait_until{ @zk.connected? }
     @completed  = false
   end
@@ -228,7 +228,7 @@ describe ZooKeeper, "asynchronous create with no paths" do
   it "should create a path and execute callback on self" do
     pending('Not implemented in MRI version yet') unless defined?(JRUBY_VERSION)
     context = Time.new
-    @zk.create(:path => "/test", :data => "test_data", :callback => self, :context => context)
+    @zk.create("/test", "test_data", :callback => self, :context => context)
     wait_until { completed? }
     @return_code.should == 0
     @path.should        == "/test"
@@ -247,7 +247,7 @@ describe ZooKeeper, "asynchronous create with no paths" do
     end
 
     context = Time.new
-    @zk.create(:path => "/test", :data => "test_data", :callback => callback, :context => context)
+    @zk.create("/test", "test_data", :callback => callback, :context => context)
     wait_until { completed? }
     @return_code.should == 0
     @path.should        == "/test"
@@ -264,10 +264,10 @@ describe ZooKeeper, "watches" do
     @watcher.stub!(:process)
     @watcher = EventWatcher.new
 
-    @zk1 = ZooKeeper.new(:host => "localhost:2181", :watcher => @watcher)
-    @zk2 = ZooKeeper.new(:host => "localhost:2181", :watcher => SilentWatcher.new)
+    @zk1 = ZooKeeper.new("localhost:2181", :watcher => @watcher)
+    @zk2 = ZooKeeper.new("localhost:2181", :watcher => SilentWatcher.new)
     wait_until{ @zk1.connected? && @zk2.connected? }
-    @zk1.create(:path => "/test", :data => "test_data")
+    @zk1.create("/test", "test_data")
   end
 
   after(:each) do
@@ -278,32 +278,32 @@ describe ZooKeeper, "watches" do
   
   it "should get data changed event" do
     pending('Not implemented in MRI version yet') unless defined?(JRUBY_VERSION)
-    @zk1.get(:path => "/test", :watch => true)
-    @zk2.set(:path => "/test", :data => "foo")
+    @zk1.get("/test", :watch => true)
+    @zk2.set("/test", "foo")
     wait_until { @watcher.received_disconnected }
     @watcher.event_types.should include(ZooKeeper::WatcherEvent::EventNodeDataChanged)
   end
   
   it "should get an event when a path is created" do
     pending('Not implemented in MRI version yet') unless defined?(JRUBY_VERSION)
-    @zk1.exists(:path => "/fred", :watch => true)
-    @zk2.create(:path => "/fred", :data => "freds_data").should == "/fred"
+    @zk1.exists("/fred", :watch => true)
+    @zk2.create("/fred", "freds_data").should == "/fred"
     wait_until { @watcher.received_disconnected }
     @watcher.event_types.should include(ZooKeeper::WatcherEvent::EventNodeCreated)
   end
   
   it "should get an event when a path is deleted" do
     pending('Not implemented in MRI version yet') unless defined?(JRUBY_VERSION)
-    @zk1.exists(:path => "/test", :watch => true)
-    @zk2.delete(:path => "/test")
+    @zk1.exists("/test", :watch => true)
+    @zk2.delete("/test")
     wait_until { @watcher.received_disconnected }
     @watcher.event_types.should include(ZooKeeper::WatcherEvent::EventNodeDeleted)
   end
   
   it "should get an event when a child is added" do
     pending('Not implemented in MRI version yet') unless defined?(JRUBY_VERSION)
-    @zk1.children(:path => "/test", :watch => true)
-    @zk2.create(:path => "/test/child", :data => "child1", :sequence => true, :empheral => true).should == "/test/child0"
+    @zk1.children("/test", :watch => true)
+    @zk2.create("/test/child", "child1", :mode => :ephemeral_sequential).should == "/test/child0"
     wait_until { @watcher.received_disconnected }
     @watcher.event_types.should include(ZooKeeper::WatcherEvent::EventNodeChildrenChanged)
   end
@@ -313,9 +313,9 @@ end
 describe ZooKeeper, "versioning data" do
 
   before(:each) do
-    @zk = ZooKeeper.new(:host => "localhost:2181", :watcher => SilentWatcher.new)
+    @zk = ZooKeeper.new("localhost:2181", :watcher => SilentWatcher.new)
     wait_until{ @zk.connected? }
-    @zk.create(:path => "/test", :data => "test_data")
+    @zk.create("/test", "test_data")
   end
   
   after(:each) do
@@ -324,17 +324,17 @@ describe ZooKeeper, "versioning data" do
   end
 
   it "should allow setting data with a version" do
-    @zk.set(:path => "/test", :data => "test_data_1", :version => 0)
-    @zk.get(:path => "/test", :version => 0).first.should == "test_data_1"
+    @zk.set("/test", "test_data_1", :version => 0)
+    @zk.get("/test", :version => 0).first.should == "test_data_1"
   end
 
   it "should increment version when setting data" do
-    @zk.set(:path => "/test", :data => "test_data_1")
-    @zk.get(:path => "/test", :version => 1).first.should == "test_data_1"
+    @zk.set("/test", "test_data_1")
+    @zk.get("/test", :version => 1).first.should == "test_data_1"
   end
   
   it "should delete path with a version" do
-    @zk.delete(:path => "/test", :version => 0)
+    @zk.delete("/test", :version => 0)
     @zk.exists("/test").should be_nil
   end
 
@@ -343,10 +343,10 @@ end
 describe ZooKeeper, "stats" do
 
   before(:each) do
-    @zk = ZooKeeper.new(:host => "localhost:2181", :watcher => SilentWatcher.new)
+    @zk = ZooKeeper.new("localhost:2181", :watcher => SilentWatcher.new)
     wait_until{ @zk.connected? }
-    @zk.create(:path => "/test", :data => "test_data")
-    @zk.set(:path => "/test", :data => "test_data_1")
+    @zk.create("/test", "test_data")
+    @zk.set("/test", "test_data_1")
   end
   
   after(:each) do
@@ -377,8 +377,8 @@ end
 describe ZooKeeper, "ACL" do
 
   before(:each) do
-    @zk1 = ZooKeeper.new(:host => "localhost:2181", :watcher => SilentWatcher.new)
-    @zk2 = ZooKeeper.new(:host => "localhost:2181", :watcher => SilentWatcher.new)
+    @zk1 = ZooKeeper.new("localhost:2181", :watcher => SilentWatcher.new)
+    @zk2 = ZooKeeper.new("localhost:2181", :watcher => SilentWatcher.new)
     wait_until{ @zk1.connected? && @zk2.connected? }
   end
   
@@ -390,13 +390,13 @@ describe ZooKeeper, "ACL" do
 
   it "should create a path with OPEN_ACL_UNSAFE permissions by default" do
     pending('Not implemented in MRI version yet') unless defined?(JRUBY_VERSION)
-    @zk1.create(:path => "/test", :data => "test_data")
+    @zk1.create("/test", "test_data")
     @zk1.acls("/test").first.should == ZooKeeper::ACL::OPEN_ACL_UNSAFE
   end
   
   it "should create a path with READ_ACL_UNSAFE permissions" do
     pending('Not implemented in MRI version yet') unless defined?(JRUBY_VERSION)
-    @zk1.create(:path => "/test", :data => "test_data", :acl => ZooKeeper::ACL::READ_ACL_UNSAFE)
+    @zk1.create("/test", "test_data", :acl => ZooKeeper::ACL::READ_ACL_UNSAFE)
     @zk1.acls("/test").first.should == ZooKeeper::ACL::READ_ACL_UNSAFE
   end
   
@@ -404,8 +404,8 @@ describe ZooKeeper, "ACL" do
     pending('Not implemented in MRI version yet') unless defined?(JRUBY_VERSION)
     callback = MockAclCallback.new
     context = Time.new
-    @zk1.create(:path => "/test", :data => "test_data")
-    @zk1.acls(:path => "/test", :callback => callback, :context => context)
+    @zk1.create("/test", "test_data")
+    @zk1.acls("/test", :callback => callback, :context => context)
     wait_until { callback.process_result_completed? }
     callback.return_code.should == 0
     callback.path.should        == "/test"
@@ -416,7 +416,7 @@ describe ZooKeeper, "ACL" do
   it "should create a path with CREATOR_ALL_ACL permissions" do
     pending('Not implemented in MRI version yet') unless defined?(JRUBY_VERSION)
     @zk1.add_auth_info(:scheme => "digest", :auth => "shane:password")
-    @zk1.create(:path => "/test", :data => "test_data", :acl => ZooKeeper::ACL::CREATOR_ALL_ACL)
+    @zk1.create("/test", "test_data", :acl => ZooKeeper::ACL::CREATOR_ALL_ACL)
     @zk1.acls("/test").first.should == [ZooKeeper::ACL.new(ZooKeeper::Permission::ALL | ZooKeeper::Permission::ADMIN, 
                                         ZooKeeper::Id.new('digest', 'shane:pgPxAF2N8U79uqcuGPQx3C6J2c8='))]  
   end
@@ -424,39 +424,39 @@ describe ZooKeeper, "ACL" do
   it "should set creator to read with CREATOR_ALL_ACL permissions" do
     pending('Not implemented in MRI version yet') unless defined?(JRUBY_VERSION)
     @zk1.add_auth_info(:scheme => "digest", :auth => "shane:password")
-    @zk1.create(:path => "/test", :data => "test_data", :acl => ZooKeeper::ACL::CREATOR_ALL_ACL)
+    @zk1.create("/test", "test_data", :acl => ZooKeeper::ACL::CREATOR_ALL_ACL)
     @zk2.add_auth_info(:scheme => "digest", :auth => "shane:password")
     @zk2.get("/test").first.should == "test_data"
   end
   
   it "should create node with CREATOR_ALL_ACL permissions if no authentcated ids present" do
     pending('Not implemented in MRI version yet') unless defined?(JRUBY_VERSION)
-    lambda { @zk1.create(:path => "/test", :data => "test_data", :acl => ZooKeeper::ACL::CREATOR_ALL_ACL) }.should raise_error(KeeperException::InvalidACL)
+    lambda { @zk1.create("/test", "test_data", :acl => ZooKeeper::ACL::CREATOR_ALL_ACL) }.should raise_error(KeeperException::InvalidACL)
   end
   
   it "should not allow world to read node with CREATOR_ALL_ACL permissions" do
     pending('Not implemented in MRI version yet') unless defined?(JRUBY_VERSION)
     @zk1.add_auth_info(:scheme => "digest", :auth => "shane:password")
-    @zk1.create(:path => "/test", :data => "test_data", :acl => ZooKeeper::ACL::CREATOR_ALL_ACL)
+    @zk1.create("/test", "test_data", :acl => ZooKeeper::ACL::CREATOR_ALL_ACL)
     lambda { @zk2.get("/test") }.should raise_error(KeeperException::NoAuth)
   end
 
   it "should allow world to read with READ_ACL_UNSAFE permissions" do
     pending('Not implemented in MRI version yet') unless defined?(JRUBY_VERSION)
-    @zk1.create(:path => "/test", :data => "test_data", :acl => ZooKeeper::ACL::READ_ACL_UNSAFE)
+    @zk1.create("/test", "test_data", :acl => ZooKeeper::ACL::READ_ACL_UNSAFE)
     @zk2.get("/test").first.should == "test_data"
   end
 
   it "should not allow world to write with READ_ACL_UNSAFE permissions" do
     pending('Not implemented in MRI version yet') unless defined?(JRUBY_VERSION)
-    @zk1.create(:path => "/test", :data => "test_data", :acl => ZooKeeper::ACL::READ_ACL_UNSAFE)
-    lambda { @zk2.set(:path => "/test", :data => "new_data") }.should raise_error(KeeperException::NoAuth)
+    @zk1.create("/test", "test_data", :acl => ZooKeeper::ACL::READ_ACL_UNSAFE)
+    lambda { @zk2.set("/test", "new_data") }.should raise_error(KeeperException::NoAuth)
   end
   
   it "should accept new ACL" do
     pending('Not implemented in MRI version yet') unless defined?(JRUBY_VERSION)
-    @zk1.create(:path => "/test", :data => "test_data")
-    lambda { @zk1.set_acl(:path => "/test", :acl =>  ZooKeeper::ACL::OPEN_ACL_UNSAFE) }.should_not raise_error(KeeperException::InvalidACL)
+    @zk1.create("/test", "test_data")
+    lambda { @zk1.set_acl("/test", :acl =>  ZooKeeper::ACL::OPEN_ACL_UNSAFE) }.should_not raise_error(KeeperException::InvalidACL)
   end
   
 end
