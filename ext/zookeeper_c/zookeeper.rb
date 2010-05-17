@@ -1,17 +1,20 @@
 require 'zookeeper_c'
 
+class DefaultWatcher
+  def process(event)
+    puts event.inspect
+  end
+end
+
 class ZooKeeper < CZookeeper
 
   attr_accessor :watcher
 
-  def initialize(args)
-    args  = {:host => args} unless args.is_a?(Hash)
-    host    = args[:host]
+  def initialize(host, args = {})
     # timeout = args[:timeout] || DEFAULTS[:timeout]
-    #@watcher = args[:watcher] || DefaultWatcher.new
+    @watcher = args[:watcher] || DefaultWatcher.new
     # super(host, timeout, watcher)
     super(host)
-    @watchers = {} # path => [ block, block, ... ]
   end
   
   def connected?
@@ -27,40 +30,31 @@ class ZooKeeper < CZookeeper
   end
 
   def watcher(*args)
-    puts args.inspect
+    @watcher.process(ZooKeeper::WatcherEvent.new(*args)) if @watcher
   end
   
-  def create(args)
-    path     = args[:path]
-    data     = args[:data]
-    flags    = 0
-    flags    |= EPHEMERAL if args[:ephemeral]
-    flags    |= SEQUENCE  if args[:sequence]
-    super(path, data, flags)
+  def create(path, data = "", args = {})
+    super(path, data, flags_from_mode(args[:mode]))
   end
 
-  def exists(path, watch = true)
+  def exists(path, args = {})
+    watch = args[:watch] || false
     Stat.new(super(path, watch))
   rescue NoNodeError
     return nil
   end
   
-  def get(args)
-    args  = {:path => args} unless args.is_a?(Hash)
-    path     = args[:path]
+  def get(path, args = {})
     watch    = args[:watch] || false
-    callback = args[:callback]
-    context  = args[:context]
-    
-    value, stat = super(path)
+    #callback = args[:callback]
+
+    value, stat = super(path, watch)
     [value, Stat.new(stat)]
   rescue NoNodeError
     raise KeeperException::NoNode
   end
   
-  def set(args)
-    path     = args[:path]
-    data     = args[:data]
+  def set(path, data, args = {})
     version  = args[:version] || -1
     callback = args[:callback]
     context  = args[:context]
@@ -68,9 +62,7 @@ class ZooKeeper < CZookeeper
     super(path, data, version)
   end
 
-  def delete(args)
-    args = {:path => args} unless args.is_a?(Hash)
-    path     = args[:path]
+  def delete(path, args = {})
     version  = args[:version] || -1
     callback = args[:callback]
     context  = args[:context]
@@ -78,14 +70,27 @@ class ZooKeeper < CZookeeper
     super(path, version)
   end
 
-  def children(args)
-    args    = {:path => args} unless args.is_a?(Hash)
-    path     = args[:path]
+  def children(path, args = {})
     watch    = args[:watch] || false
-    callback = args[:callback]
-    context  = args[:context]
+    #callback = args[:callback]
+    #context  = args[:context]
 
-    ls(path)
+    get_children(path, watch)
+  end
+
+private
+  def flags_from_mode(mode)
+    flags = 0 #zero means persistent, non-sequential
+    case mode
+      when :persistent_sequential
+        flags |= SEQUENCE
+      when :ephemeral
+        flags |= EPHEMERAL
+      when :ephemeral_sequential
+        flags |= SEQUENCE
+        flags |= EPHEMERAL
+    end
+    flags
   end
   
 end

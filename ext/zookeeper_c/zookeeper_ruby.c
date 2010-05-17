@@ -90,7 +90,7 @@ static VALUE method_initialize(VALUE self, VALUE hostPort) {
   struct zk_rb_data * y; \
   Data_Get_Struct(rb_iv_get(x, "@data"), struct zk_rb_data, y)
 
-static VALUE method_get_children(VALUE self, VALUE path) {
+static VALUE method_get_children(VALUE self, VALUE path, VALUE watch) {
   struct String_vector strings;
   int i;
   VALUE output;
@@ -98,7 +98,7 @@ static VALUE method_get_children(VALUE self, VALUE path) {
   Check_Type(path, T_STRING);
   FETCH_DATA_PTR(self, zk);
 
-  check_errors(zoo_get_children(zk->zh, RSTRING(path)->ptr, 0, &strings));
+  check_errors(zoo_get_children(zk->zh, RSTRING(path)->ptr, (watch != Qfalse && watch != Qnil), &strings));
 
   output = rb_ary_new();
   for (i = 0; i < strings.count; ++i) {
@@ -146,7 +146,7 @@ static VALUE method_delete(VALUE self, VALUE path, VALUE version) {
   return Qtrue;
 }
 
-static VALUE method_get(VALUE self, VALUE path) {
+static VALUE method_get(VALUE self, VALUE path, VALUE watch) {
   char data[1024];
   int data_len = sizeof(data);
 
@@ -156,7 +156,7 @@ static VALUE method_get(VALUE self, VALUE path) {
   Check_Type(path, T_STRING);
   FETCH_DATA_PTR(self, zk);
 
-  check_errors(zoo_get(zk->zh, RSTRING(path)->ptr, 0, data, &data_len, &stat));
+  check_errors(zoo_get(zk->zh, RSTRING(path)->ptr, (watch != Qfalse && watch != Qnil), data, &data_len, &stat));
 
   return rb_ary_new3(2,
 		     rb_str_new(data, data_len),
