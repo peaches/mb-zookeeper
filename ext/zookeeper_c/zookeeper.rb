@@ -28,11 +28,14 @@ class ZooKeeper < CZookeeper
   end
   
   def closed?
-    true # we hope TODO fix this
+    !connected?
   end
   
   def close
-    super
+    if connected? and !@close_requested
+      @close_requested = true
+      super
+    end
   end
 
   def handle_watcher_event(*args)
@@ -75,6 +78,8 @@ class ZooKeeper < CZookeeper
     context  = args[:context]
     
     super(path, version)
+  rescue NoNodeError
+    raise KeeperException::NoNode
   end
 
   def children(path, args = {})
@@ -83,13 +88,15 @@ class ZooKeeper < CZookeeper
     #context  = args[:context]
 
     get_children(path, watch)
+  rescue NoNodeError
+    raise KeeperException::NoNode
   end
 
 private
   def flags_from_mode(mode)
     flags = 0 #zero means persistent, non-sequential
     case mode
-      when :persistent_sequential
+      when :sequential
         flags |= ZOO_SEQUENCE
       when :ephemeral
         flags |= ZOO_EPHEMERAL

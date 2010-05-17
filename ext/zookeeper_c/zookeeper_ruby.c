@@ -272,7 +272,9 @@ static VALUE method_client_id(VALUE self) {
 
 static VALUE method_close(VALUE self) {
   FETCH_DATA_PTR(self, zk);
-  check_errors(zookeeper_close(zk->zh));
+  if (zk->zh) {
+    check_errors(zookeeper_close(zk->zh));    
+  }
   return Qtrue;
 }
 
@@ -406,12 +408,12 @@ void Init_zookeeper_c() {
     rb_define_method(Zookeeper, #method, method_ ## method, args); }
 
   DEFINE_METHOD(initialize, 1);
-  DEFINE_METHOD(get_children, 1);
+  DEFINE_METHOD(get_children, 2);
   DEFINE_METHOD(exists, 2);
   DEFINE_METHOD(create, 3);
   DEFINE_METHOD(delete, 2);
-  DEFINE_METHOD(get, 1);
-  DEFINE_METHOD(set, -1);
+  DEFINE_METHOD(get, 2);
+  DEFINE_METHOD(set, 3);
 
   /* TODO */
   DEFINE_METHOD(add_auth, 3);
