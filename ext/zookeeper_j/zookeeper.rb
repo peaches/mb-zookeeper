@@ -134,6 +134,8 @@ class ZooKeeper < JZooKeeper
   #
   # 
   def create(path, data = "", args = {})
+    data = data || {}
+    args = args || {}
     acls     = args[:acl] || ZooKeeper::ACL::OPEN_ACL_UNSAFE
     callback = args[:callback]
     context  = args[:context]
@@ -191,11 +193,12 @@ class ZooKeeper < JZooKeeper
   #   context = Object.new
   #   zk.get("/path", :callback => callback, :context => context)
   #
-  def get(path, opts = {}, &block)
-    context  = opts[:context]
-    watch    = opts[:watch] || false
+  def get(path, args = {}, &block)
+    args = args || {}
+    context  = args[:context]
+    watch    = args[:watch] || false
 
-    callback = opts[:callback]
+    callback = args[:callback]
     callback = block if not block.nil?
 
     stat     = Zk::Stat.new
@@ -247,17 +250,17 @@ class ZooKeeper < JZooKeeper
   #   callback = StatCallback.new
   #   context = Object.new
   #
-  #   zk.exists("/path", :callback => callback, :context => context)
-  def exists(path, args = {})
-    watch    = args[:watch] || false
-    callback = args[:callback]
-    context  = args[:context]
-
+  #   zk.exists?("/path", :callback => callback, :context => context)
+  def exists?(path, opts = {})
+    opts = opts || {} #why do we have to do this?  I have no idea
+    watch    = opts[:watch] || false
+    callback = opts[:callback]
+    context  = opts[:context]
     if callback
       callback.extend Zk::AsyncCallback::StatCallback unless callback.is_a?(Proc) || callback.respond_to?(:processResult)
-      super(path, watch, callback, context)
+      exists(path, watch, callback, context)
     else
-      stat = super(path, watch)
+      stat = exists(path, watch)
       return stat.nil? ? nil : Stat.new(stat.to_a)
     end
 

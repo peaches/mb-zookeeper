@@ -47,9 +47,9 @@ class ZooKeeper < CZookeeper
     super(path, data, flags_from_mode(mode))
   end
 
-  def exists(path, args = {})
+  def exists?(path, args = {})
     watch = args[:watch] || false
-    Stat.new(super(path, watch))
+    Stat.new(exists(path, watch))
   rescue NoNodeError
     return nil
   end
