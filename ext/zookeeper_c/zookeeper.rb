@@ -1,24 +1,12 @@
 require 'zookeeper_c'
 
-class DefaultWatcher
-  attr_accessor :events
-
-  def initialize
-    @events = []
-  end
-
-  def process(event)
-    $stderr.puts event
-  end
-end
-
 class ZooKeeper < CZookeeper
 
   attr_accessor :watcher
 
   def initialize(host, args = {})
     # timeout = args[:timeout] || DEFAULTS[:timeout]
-    @watcher = args[:watcher] || DefaultWatcher.new
+    @watcher = args[:watcher] || EventHandler.new(self)
     # super(host, timeout, watcher)
     super(host)
   end

@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.extra_rdoc_files = ["README"]
   s.files = ["README", "lib/zookeeper.rb", "lib/zookeeper/acl.rb", "lib/zookeeper/id.rb", "lib/zookeeper/keeper_exception.rb",
             "lib/zookeeper/permission.rb", "lib/zookeeper/stat.rb", "lib/zookeeper/watcher_event.rb",
-            "lib/zookeeper/logging.rb"]
+            "lib/zookeeper/event_handler.rb", "lib/zookeeper/locker.rb", "lib/zookeeper/logging.rb"]
     
   case RUBY_PLATFORM
   when /java/
