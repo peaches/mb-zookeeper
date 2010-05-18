@@ -33,6 +33,11 @@ describe ZooKeeper, "with no paths" do
     @zk.create("/test", "test_data").should == "/test"
   end
 
+  it "should be able to set the data" do
+    @zk.create("/test", "something")
+    @zk.set("/test", "somethingelse")
+    @zk.get("/test").first.should == "somethingelse"
+  end
 
   it "should raise an exception for a non existent path" do
     lambda { @zk.get("/non_existent_path") }.should raise_error(KeeperException::NoNode)
@@ -114,11 +119,6 @@ describe ZooKeeper, "with a path" do
     data.should == "test_data"
     stat.should be_a_kind_of(ZooKeeper::Stat)
     stat.created_time.should_not == 0
-  end
-
-  it "should set data" do
-    @zk.set("/test", "foo")
-    @zk.get("/test").first.should == "foo"
   end
 
   it "should set data with a file" do
@@ -296,66 +296,72 @@ end
 #  end
 #
 #end
+
+#describe ZooKeeper, "watches" do
+
+#  before(:each) do
+#    @watcher = EventWatcher.new
+#    require 'ruby-debug';debugger;
 #
-describe ZooKeeper, "watches" do
+#    @zk1 = ZooKeeper.new("localhost:2181", :watcher => @watcher)
+#    @zk2 = ZooKeeper.new("localhost:2181", :watcher => SilentWatcher.new)
+#    require 'ruby-debug'; debugger;
+#    wait_until{ @zk2.connected? }
+#    delete_test!
+#    @zk1.create("/test", "test_data", :mode => :persistent)
+#  end
+#
+#  after(:each) do
+#    @zk1.close
+#    @zk2.close
+#    delete_test!
+#    wait_until{ @zk1.closed? && @zk2.closed? }
+#  end
+#
+#  def delete_test!
+#    if (@zk1.exists('/test'))
+#      @zk1.children("/test").each do |child|
+#        @zk1.delete("/test/#{child}")
+#      end
+#      @zk1.delete('/test')
+#    end
+#    @zk1.delete("/fred") if @zk1.exists("/fred")
+#  end
+#
+#  it "should be true" do
+#    true.should be_true
+#  end
 
-  before(:each) do
-    @watcher = mock("Watcher")
-    @watcher.stub!(:process)
-    @watcher = EventWatcher.new
-
-    @zk1 = ZooKeeper.new("localhost:2181", :watcher => @watcher)
-    @zk2 = ZooKeeper.new("localhost:2181", :watcher => SilentWatcher.new)
-    wait_until{ @zk1.connected? && @zk2.connected? }
-    delete_test!
-    @zk1.create("/test", "test_data", :mode => :persistent)
-  end
-
-  after(:each) do
-    @zk1.close
-    @zk2.close
-    delete_test!
-    wait_until{ @zk1.closed? && @zk2.closed? }
-  end
-
-  def delete_test!
-    if (@zk1.exists('/test'))
-      @zk1.children("/test").each do |child|
-        @zk1.delete("/test/#{child}")
-      end
-      @zk1.delete('/test')
-    end
-  end
-
-  it "should get data changed event" do
-    @zk1.get("/test", :watch => true)
-    @zk2.set("/test", "foo")
-    wait_until { @watcher.received_disconnected }
-    @watcher.event_types.should include(ZooKeeper::WatcherEvent::EventNodeDataChanged)
-  end
-
-  it "should get an event when a path is created" do
-    @zk1.exists("/fred", :watch => true)
-    @zk2.create("/fred", "freds_data").should == "/fred"
-    wait_until { @watcher.received_disconnected }
-    @watcher.event_types.should include(ZooKeeper::WatcherEvent::EventNodeCreated)
-  end
-
-  it "should get an event when a path is deleted" do
-    @zk1.exists("/test", :watch => true)
-    @zk2.delete("/test")
-    wait_until { @watcher.received_disconnected }
-    @watcher.event_types.should include(ZooKeeper::WatcherEvent::EventNodeDeleted)
-  end
-
-  it "should get an event when a child is added" do
-    @zk1.children("/test", :watch => true)
-    @zk2.create("/test/child", "child1", :mode => :ephemeral_sequential).should == "/test/child0"
-    wait_until { @watcher.received_disconnected }
-    @watcher.event_types.should include(ZooKeeper::WatcherEvent::EventNodeChildrenChanged)
-  end
-
-end
+#  it "should get data changed event" do
+#    @zk1.get("/test", :watch => true)
+#    @zk2.set("/test", "foo")
+#    #wait_until { @watcher.received_disconnected }
+#    @watcher.event_types.should include(ZooKeeper::WatcherEvent::EventNodeDataChanged)
+#  end
+#end
+#
+#  it "should get an event when a path is created" do
+#    @zk1.exists("/fred", :watch => true)
+#    @zk2.create("/fred", "freds_data").should == "/fred"
+#    #wait_until { @watcher.received_disconnected }
+#    @watcher.event_types.should include(ZooKeeper::WatcherEvent::EventNodeCreated)
+#  end
+##
+##  it "should get an event when a path is deleted" do
+##    @zk1.exists("/test", :watch => true)
+##    @zk2.delete("/test")
+##    #wait_until { @watcher.received_disconnected }
+##    @watcher.event_types.should include(ZooKeeper::WatcherEvent::EventNodeDeleted)
+##  end
+##
+##  it "should get an event when a child is added" do
+##    @zk1.children("/test", :watch => true)
+##    @zk2.create("/test/child", "child1", :mode => :ephemeral_sequential).should == "/test/child0"
+##    #wait_until { @watcher.received_disconnected }
+##    @watcher.event_types.should include(ZooKeeper::WatcherEvent::EventNodeChildrenChanged)
+##  end
+#
+#end
 #
 #describe ZooKeeper, "versioning data" do
 #

@@ -23,9 +23,11 @@ struct zk_rb_data {
 static void watcher(zhandle_t *zzh, int type, int state, const char *path, void *ctx) {
   VALUE self, watcher_id;
 
-  self = (VALUE)zoo_get_context(zzh);;
-  watcher_id = rb_intern("handle_watcher_event");
-  rb_funcall(self, watcher_id, 3, INT2FIX(type), INT2FIX(state), rb_str_new2(path));
+  self = (VALUE)zoo_get_context(zzh);
+  if (self) {
+    watcher_id = rb_intern("handle_watcher_event");
+    rb_funcall(self, watcher_id, 3, INT2FIX(type), INT2FIX(state), rb_str_new2(path));
+  }
 }
 
 #warning [emaland] incomplete - but easier to read!
@@ -46,7 +48,7 @@ static void check_errors(int rc) {
 }
 
 static void free_zk_rb_data(struct zk_rb_data* ptr) {
-  if (ptr->zh) {
+  if (ptr && ptr->zh && (zoo_state(ptr->zh) == ZOO_CONNECTED_STATE)) {
       zookeeper_close(ptr->zh);    
   }
 }

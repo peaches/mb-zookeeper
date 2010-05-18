@@ -45,5 +45,5 @@ class EventWatcher
   def event_types
     @events.collect { |e| e.type }
   end
-  
+
 end
