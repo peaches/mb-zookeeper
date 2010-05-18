@@ -15,7 +15,7 @@ describe ZooKeeper, "with no paths" do
   end
 
   def delete_test!
-    if (@zk.exists('/test'))
+    if (@zk.exists?('/test'))
       @zk.children("/test").each do |child|
         @zk.delete("/test/#{child}")
       end
@@ -26,7 +26,7 @@ describe ZooKeeper, "with no paths" do
 
 
   it "should not exist" do
-    @zk.exists("/test").should be_nil
+    @zk.exists?("/test").should be_nil
   end
 
   it "should create a path" do
@@ -44,7 +44,7 @@ describe ZooKeeper, "with no paths" do
   end
 
   it "should create a path with sequence set" do
-    @zk.create("/test", "test_data", :mode => :sequential).should =~ /test(\d+)/
+    @zk.create("/test", "test_data", :mode => :persistent_sequential).should =~ /test(\d+)/
   end
 
   it "should create an ephemeral path" do
@@ -53,36 +53,36 @@ describe ZooKeeper, "with no paths" do
 
   it "should remove ephemeral path when client session ends" do
     @zk.create("/test", "test_data", :mode => :ephemeral).should == "/test"
-    @zk.exists("/test").should_not be_nil
+    @zk.exists?("/test").should_not be_nil
     @zk.close
 
     @zk = ZooKeeper.new("localhost:2181", :watcher => SilentWatcher.new)
     wait_until{ @zk.connected? }    
-    @zk.exists("/test").should be_nil
+    @zk.exists?("/test").should be_nil
   end
 
   it "should remove sequential ephemeral path when client session ends" do
     created = @zk.create("/test", "test_data", :mode => :ephemeral_sequential)
     created.should =~ /test(\d+)/
-    @zk.exists(created).should_not be_nil
+    @zk.exists?(created).should_not be_nil
     @zk.close
 
     @zk = ZooKeeper.new("localhost:2181", :watcher => SilentWatcher.new)
     wait_until{ @zk.connected? }        
-    @zk.exists(created).should be_nil
+    @zk.exists?(created).should be_nil
   end
 
-  it "should asynchronously create a path and execute callback on callback object" do
-    pending('Not implemented in MRI version yet') unless defined?(JRUBY_VERSION)
-    callback = MockStringCallback.new
-    context = Time.new
-    @zk.create("/test", "test_data", :callback => callback, :context => context)
-    wait_until { callback.process_result_completed? }
-    callback.return_code.should == 0
-    callback.path.should        == "/test"
-    callback.context.should     == context
-    callback.name.should        == "/test"
-  end
+#  it "should asynchronously create a path and execute callback on callback object" do
+#    pending('Not implemented in MRI version yet') unless defined?(JRUBY_VERSION)
+#    callback = MockStringCallback.new
+#    context = Time.new
+#    @zk.create("/test", "test_data", :callback => callback, :context => context)
+#    wait_until { callback.process_result_completed? }
+#    callback.return_code.should == 0
+#    callback.path.should        == "/test"
+#    callback.context.should     == context
+#    callback.name.should        == "/test"
+#  end
 
 end
 
@@ -102,7 +102,7 @@ describe ZooKeeper, "with a path" do
   end
 
   def delete_test!
-    if (@zk.exists('/test'))
+    if (@zk.exists?('/test'))
       @zk.children("/test").each do |child|
         @zk.delete("/test/#{child}")
       end
@@ -111,7 +111,7 @@ describe ZooKeeper, "with a path" do
   end
 
   it "should return a stat" do
-    @zk.exists("/test").should be_instance_of(ZooKeeper::Stat)
+    @zk.exists?("/test").should be_instance_of(ZooKeeper::Stat)
   end
 
   it "should get data and stat" do
@@ -129,7 +129,7 @@ describe ZooKeeper, "with a path" do
 
   it "should delete path" do
     @zk.delete("/test")
-    @zk.exists("/test").should be_nil
+    @zk.exists?("/test").should be_nil
   end
 
   it "should create a child path" do
@@ -137,8 +137,8 @@ describe ZooKeeper, "with a path" do
   end
 
   it "should create sequential child paths" do
-    (child1 = @zk.create("/test/child", "child1", :mode => :sequential)).should =~ /\/test\/child(\d+)/
-    (child2 = @zk.create("/test/child", "child2", :mode => :sequential)).should =~ /\/test\/child(\d+)/
+    (child1 = @zk.create("/test/child", "child1", :mode => :persistent_sequential)).should =~ /\/test\/child(\d+)/
+    (child2 = @zk.create("/test/child", "child2", :mode => :persistent_sequential)).should =~ /\/test\/child(\d+)/
     children = @zk.children("/test")
     children.length.should == 2
     children.should be_include(child1.match(/\/test\/(child\d+)/)[1])
@@ -217,7 +217,7 @@ describe ZooKeeper, "with children" do
   end
 
   def delete_test!
-    if (@zk.exists('/test'))
+    if (@zk.exists?('/test'))
       @zk.children("/test").each do |child|
         @zk.delete("/test/#{child}")
       end
@@ -229,17 +229,17 @@ describe ZooKeeper, "with children" do
     @zk.children("/test").should eql(["child"])
   end
 
-  it "should asynchronously get children and execute callback" do
-    pending('Not implemented in MRI version yet') unless defined?(JRUBY_VERSION)
-    callback = MockChildrenCallback.new
-    context = Time.new
-    @zk.children("/test", :callback => callback, :context => context).should be_nil
-    wait_until { callback.process_result_completed? }
-    callback.return_code.should == 0
-    callback.path.should        == "/test"
-    callback.context.should     == context
-    callback.children.should eql(["child"])
-  end
+#  it "should asynchronously get children and execute callback" do
+#    pending('Not implemented in MRI version yet') unless defined?(JRUBY_VERSION)
+#    callback = MockChildrenCallback.new
+#    context = Time.new
+#    @zk.children("/test", :callback => callback, :context => context).should be_nil
+#    wait_until { callback.process_result_completed? }
+#    callback.return_code.should == 0
+#    callback.path.should        == "/test"
+#    callback.context.should     == context
+#    callback.children.should eql(["child"])
+#  end
 
 end
 #
@@ -298,15 +298,12 @@ end
 #end
 
 #describe ZooKeeper, "watches" do
-
+#
 #  before(:each) do
 #    @watcher = EventWatcher.new
-#    require 'ruby-debug';debugger;
-#
 #    @zk1 = ZooKeeper.new("localhost:2181", :watcher => @watcher)
 #    @zk2 = ZooKeeper.new("localhost:2181", :watcher => SilentWatcher.new)
-#    require 'ruby-debug'; debugger;
-#    wait_until{ @zk2.connected? }
+#    wait_until{ @zk1.connected? && @zk2.connected? }
 #    delete_test!
 #    @zk1.create("/test", "test_data", :mode => :persistent)
 #  end
@@ -318,37 +315,32 @@ end
 #    wait_until{ @zk1.closed? && @zk2.closed? }
 #  end
 #
-#  def delete_test!
-#    if (@zk1.exists('/test'))
+#  def do_cool!
+#    if (@zk1.exists?('/test'))
 #      @zk1.children("/test").each do |child|
 #        @zk1.delete("/test/#{child}")
 #      end
 #      @zk1.delete('/test')
 #    end
-#    @zk1.delete("/fred") if @zk1.exists("/fred")
-#  end
-#
-#  it "should be true" do
-#    true.should be_true
+#    @zk1.delete("/fred") if @zk1.exists?("/fred")
 #  end
 
 #  it "should get data changed event" do
 #    @zk1.get("/test", :watch => true)
 #    @zk2.set("/test", "foo")
-#    #wait_until { @watcher.received_disconnected }
+#    wait_until { @watcher.received_disconnected }
 #    @watcher.event_types.should include(ZooKeeper::WatcherEvent::EventNodeDataChanged)
 #  end
-#end
 #
 #  it "should get an event when a path is created" do
-#    @zk1.exists("/fred", :watch => true)
+#    @zk1.exists?("/fred", :watch => true)
 #    @zk2.create("/fred", "freds_data").should == "/fred"
 #    #wait_until { @watcher.received_disconnected }
 #    @watcher.event_types.should include(ZooKeeper::WatcherEvent::EventNodeCreated)
 #  end
 ##
 ##  it "should get an event when a path is deleted" do
-##    @zk1.exists("/test", :watch => true)
+##    @zk1.exists?("/test", :watch => true)
 ##    @zk2.delete("/test")
 ##    #wait_until { @watcher.received_disconnected }
 ##    @watcher.event_types.should include(ZooKeeper::WatcherEvent::EventNodeDeleted)
@@ -388,7 +380,7 @@ end
 #
 #  it "should delete path with a version" do
 #    @zk.delete("/test", :version => 0)
-#    @zk.exists("/test").should be_nil
+#    @zk.exists?("/test").should be_nil
 #  end
 #
 #end
@@ -407,8 +399,8 @@ end
 #    wait_until{ @zk.closed? }
 #  end
 #
-#  it "should return stat with exists" do
-#    stat = @zk.exists("/test")
+#  it "should return stat with exists?" do
+#    stat = @zk.exists?("/test")
 #    stat.should_not be_nil
 #    stat.should be_a_kind_of(ZooKeeper::Stat)
 #

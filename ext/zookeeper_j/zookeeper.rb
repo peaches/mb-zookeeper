@@ -134,7 +134,7 @@ class ZooKeeper < JZooKeeper
   #
   # 
   def create(path, data = "", args = {})
-    data = data || {}
+    data = data || ""
     args = args || {}
     acls     = args[:acl] || ZooKeeper::ACL::OPEN_ACL_UNSAFE
     callback = args[:callback]
@@ -209,7 +209,8 @@ class ZooKeeper < JZooKeeper
     else
       [String.from_java_bytes(getData(path, watch, stat)), Stat.new(stat.to_a)]
     end
-  
+  rescue Exception => e
+    raise KeeperException.by_code(e.code)
   end
   
   

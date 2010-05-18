@@ -98,6 +98,8 @@ private
     case mode
       when :sequential
         flags |= ZOO_SEQUENCE
+      when :persistent_sequential
+        flags |= ZOO_SEQUENCE        
       when :ephemeral
         flags |= ZOO_EPHEMERAL
       when :ephemeral_sequential

@@ -42,7 +42,7 @@ class KeeperException < Exception
   class InvalidCallback         < KeeperException; end
   class InvalidACL              < KeeperException; end
   class AuthFailed              < KeeperException; end
-  
+    
   def self.by_code(code)
     case code
     when OK: Ok
@@ -65,7 +65,7 @@ class KeeperException < Exception
     when INVALIDCALLBACK: InvalidCallback         
     when INVALIDACL: InvalidACL
     when AUTHFAILED: AuthFailed
-    else Exception.new("no exception defined for code #{code}")
+    else raise Exception.new("no exception defined for code #{code}")
     end
   end
 end
