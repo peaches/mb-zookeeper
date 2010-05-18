@@ -15,7 +15,7 @@ class ZooKeeper
     def lock!
       path = lock_path(@path)
       if !@zk.exists?(path)
-        @zk.create(path)
+        @zk.create(path, "", :mode => :persistent)
       end
       @lock_file = @zk.create("#{path}/lock", "", :mode => :ephemeral_sequential)
       lock_files = @zk.children(path)
