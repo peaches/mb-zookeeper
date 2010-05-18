@@ -23,6 +23,9 @@ class ZooKeeper
       if digit_from_lock_file(lock_files.first) == digit_from_lock_file(@lock_file)
         @locked = true
         return true
+      else
+        @zk.delete(@lock_file)
+        return false
       end
     end
 
