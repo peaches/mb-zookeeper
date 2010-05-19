@@ -3,14 +3,14 @@ Gem::Specification.new do |s|
   s.version = "0.3"
   s.specification_version = 2 if s.respond_to? :specification_version=
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.authors = ["Shane Mingins"]
-  s.date = %q{2008-06-13}
+  s.authors = ["Shane Mingins", "Topper Bowers"]
+  s.date = %q{2010-05-19}
   s.description = %q{A Ruby client interface to the Java ZooKeeper server.}
-  s.email = %q{smingins@elctech.com}
+  s.email = %q{topper@toppingdesign.com}
   s.extra_rdoc_files = ["README"]
   s.files = ["README", "lib/zookeeper.rb", "lib/zookeeper/acl.rb", "lib/zookeeper/id.rb", "lib/zookeeper/keeper_exception.rb",
             "lib/zookeeper/permission.rb", "lib/zookeeper/stat.rb", "lib/zookeeper/watcher_event.rb",
-            "lib/zookeeper/event_handler.rb", "lib/zookeeper/locker.rb", "lib/zookeeper/logging.rb"]
+            "lib/zookeeper/event_handler.rb", "lib/zookeeper/locker.rb", "lib/zookeeper/queue.rb", "lib/zookeeper/logging.rb"]
     
   case RUBY_PLATFORM
   when /java/
