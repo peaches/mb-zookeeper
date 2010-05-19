@@ -12,6 +12,7 @@ end
 
 describe ZooKeeper do
   if defined?(JRUBY_VERSION)
+    #define this so that EM::Specs done is a no-op in jruby
     def done
     end
   else

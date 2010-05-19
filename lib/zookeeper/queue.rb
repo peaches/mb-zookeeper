@@ -43,7 +43,6 @@ class ZooKeeper
     def subscribe(&block)
       @subscription_block = block
       @subscription_reference = @zk.watcher.register(full_queue_path) do |event, zk|
-        puts "watcher event: #{event.type}"
         if event.type == WatcherEvent::EventNodeChildrenChanged
           find_and_process_next_available(@zk.children(full_queue_path, :watch => true))
         end

@@ -3,8 +3,8 @@ require File.join(File.dirname(__FILE__), %w[spec_helper])
 describe ZooKeeper::Queue do
 
   before(:each) do
-    @zk = ZooKeeper.new("localhost:2181")
-    @zk2 = ZooKeeper.new("localhost:2181")
+    @zk = ZooKeeper.new("localhost:2181", :watcher => :default)
+    @zk2 = ZooKeeper.new("localhost:2181", :watcher => :default)
     wait_until{ @zk.connected? && @zk2.connected? }
     @queue_name = "_specQueue"
     @consume_queue = @zk.queue(@queue_name)
