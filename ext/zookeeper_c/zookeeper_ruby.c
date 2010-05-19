@@ -18,15 +18,16 @@ static VALUE eBadVersion = Qnil;
 struct zk_rb_data {
   zhandle_t *zh;
   clientid_t myid;
+  VALUE spawnedWatcher;
 };
 
 static void watcher(zhandle_t *zzh, int type, int state, const char *path, void *ctx) {
-  VALUE self, watcher_id;
+  VALUE spawnedWatcher, watcher_id;
 
-  self = (VALUE)zoo_get_context(zzh);
-  if (self) {
-    watcher_id = rb_intern("handle_watcher_event");
-    rb_funcall(self, watcher_id, 3, INT2FIX(type), INT2FIX(state), rb_str_new2(path));
+  spawnedWatcher = ((struct zk_rb_data*)zoo_get_context(zzh))->spawnedWatcher;
+  if (spawnedWatcher && (spawnedWatcher != Qfalse && spawnedWatcher != Qnil)) {
+    watcher_id = rb_intern("notify");
+    rb_funcall(spawnedWatcher, watcher_id, 3, INT2FIX(type), INT2FIX(state), rb_str_new2(path));
   }
 }
 
@@ -65,7 +66,7 @@ static VALUE array_from_stat(const struct Stat* stat) {
 		     LL2NUM(stat->ephemeralOwner));
 }
 
-static VALUE method_initialize(VALUE self, VALUE hostPort) {
+static VALUE method_initialize(VALUE self, VALUE hostPort, VALUE watchSpawn) {
   VALUE data;
   struct zk_rb_data* zk = NULL;
 
@@ -73,10 +74,11 @@ static VALUE method_initialize(VALUE self, VALUE hostPort) {
 
   data = Data_Make_Struct(Zookeeper, struct zk_rb_data, 0, free_zk_rb_data, zk);
 
+  zk->spawnedWatcher = watchSpawn;
   zoo_set_debug_level(ZOO_LOG_LEVEL_INFO);
   zoo_deterministic_conn_order(0);
 
-  zk->zh = zookeeper_init(RSTRING(hostPort)->ptr, watcher, 10000, &zk->myid, (void*)self, 0);
+  zk->zh = zookeeper_init(RSTRING(hostPort)->ptr, watcher, 10000, &zk->myid, (struct zk_rb_data*)zk, 0);
   if (!zk->zh) {
     rb_raise(rb_eRuntimeError, "error connecting to zookeeper: %d", errno);
   }
@@ -409,7 +411,7 @@ void Init_zookeeper_c() {
 #define DEFINE_METHOD(method, args) { \
     rb_define_method(Zookeeper, #method, method_ ## method, args); }
 
-  DEFINE_METHOD(initialize, 1);
+  DEFINE_METHOD(initialize, 2);
   DEFINE_METHOD(get_children, 2);
   DEFINE_METHOD(exists, 2);
   DEFINE_METHOD(create, 3);

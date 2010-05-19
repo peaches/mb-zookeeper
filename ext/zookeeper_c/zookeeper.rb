@@ -6,9 +6,20 @@ class ZooKeeper < CZookeeper
 
   def initialize(host, args = {})
     # timeout = args[:timeout] || DEFAULTS[:timeout]
-    @watcher = args[:watcher] || EventHandler.new(self)
+    @watcher =
+        if args[:watcher] == :default
+          EventHandler.new(self)
+        else
+          args[:watcher]
+        end
+    local_watcher = @watcher
+    spawned_watcher = nil
+    if (@watcher)
+      raise "you must use eventmachine if you want a watcher in MRI" unless defined?(EM)
+      spawned_watcher = EM.spawn {|type, state, path| local_watcher.process(ZooKeeper::WatcherEvent.new(type, state, path)) }
+    end
     # super(host, timeout, watcher)
-    super(host)
+    super(host, spawned_watcher)
   end
   
   def connected?

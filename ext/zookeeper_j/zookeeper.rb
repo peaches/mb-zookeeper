@@ -8,6 +8,12 @@ JZooKeeper = org.apache.zookeeper.ZooKeeper
 ZooDefs = org.apache.zookeeper.ZooDefs
 
 class ZooKeeper < JZooKeeper
+  class JavaSilentWatcher
+    import org.apache.zookeeper.Watcher
+    def process(event)
+    end
+  end
+
   attr_accessor :watcher
 
   # Initialize a new ZooKeeper Client.  Can be initialized with a string of the hosts names (see :host argument) otherwise pass a hash with arguments set.
@@ -24,7 +30,12 @@ class ZooKeeper < JZooKeeper
   #   zk = ZooKeeper.new(:host => "localhost:2181,localhost:3000", :timeout => 10000, :watcher => MyWatcher.new)
   def initialize(host, args = {})
     timeout = args[:timeout] || DEFAULTS[:timeout]
-    @watcher = args[:watcher] || EventHandler.new(self)
+    @watcher =
+        if args[:watcher] == :default
+          EventHandler.new(self)
+        else
+          args[:watcher] || JavaSilentWatcher.new
+        end
     @watcher.extend Zk::Watcher
     super(host, timeout, @watcher)
   end

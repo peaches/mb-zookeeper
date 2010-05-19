@@ -3,7 +3,7 @@ require File.join(File.dirname(__FILE__), %w[spec_helper])
 describe ZooKeeper, "with no paths" do
 
   before(:each) do
-    @zk = ZooKeeper.new("localhost:2181", :watcher => SilentWatcher.new)
+    @zk = ZooKeeper.new("localhost:2181", :watcher => nil)
     wait_until{ @zk.connected? }
     delete_test!
   end
@@ -56,7 +56,7 @@ describe ZooKeeper, "with no paths" do
     @zk.exists?("/test").should_not be_nil
     @zk.close
 
-    @zk = ZooKeeper.new("localhost:2181", :watcher => SilentWatcher.new)
+    @zk = ZooKeeper.new("localhost:2181", :watcher => nil)
     wait_until{ @zk.connected? }    
     @zk.exists?("/test").should be_nil
   end
@@ -67,7 +67,7 @@ describe ZooKeeper, "with no paths" do
     @zk.exists?(created).should_not be_nil
     @zk.close
 
-    @zk = ZooKeeper.new("localhost:2181", :watcher => SilentWatcher.new)
+    @zk = ZooKeeper.new("localhost:2181", :watcher => nil)
     wait_until{ @zk.connected? }        
     @zk.exists?(created).should be_nil
   end
@@ -89,7 +89,7 @@ end
 describe ZooKeeper, "with a path" do
 
   before(:each) do
-    @zk = ZooKeeper.new("localhost:2181", :watcher => SilentWatcher.new)
+    @zk = ZooKeeper.new("localhost:2181", :watcher => nil)
     wait_until{ @zk.connected? }
     delete_test!
     @zk.create("/test", "test_data", :mode => :persistent)
@@ -203,7 +203,7 @@ end
 describe ZooKeeper, "with children" do
 
   before(:each) do
-    @zk = ZooKeeper.new("localhost:2181", :watcher => SilentWatcher.new)
+    @zk = ZooKeeper.new("localhost:2181", :watcher => nil)
     wait_until{ @zk.connected? }
     delete_test!
     @zk.create("/test", "test_data", :mode => :persistent)

@@ -18,5 +18,11 @@ namespace :test_server do
   task :running? do
     puts ZooKeeperTestServer.running?
   end
-  
+
+end
+
+task :test_watch do
+  puts `gem build zookeeper.gemspec`
+  puts `sudo gem install zookeeper-0.3.gem`
+  puts `spec spec/c_watch_spec.rb`
 end
