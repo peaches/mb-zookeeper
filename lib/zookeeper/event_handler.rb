@@ -29,7 +29,7 @@ class ZooKeeper
 
     if defined?(JRUBY_VERSION)
       def process(event)
-        handle_process(ZooKeeper::WatcherEvent.new(event.get_type, event.get_state, event.get_path))
+        handle_process(ZooKeeper::WatcherEvent.new(event.type.getIntValue, event.state.getIntValue, event.path))
       end
     else
       def process(event)

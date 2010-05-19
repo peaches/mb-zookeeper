@@ -24,9 +24,9 @@ class ZooKeeper < JZooKeeper
   #   zk = ZooKeeper.new(:host => "localhost:2181,localhost:3000", :timeout => 10000, :watcher => MyWatcher.new)
   def initialize(host, args = {})
     timeout = args[:timeout] || DEFAULTS[:timeout]
-    watcher = args[:watcher] || EventHandler.new(self)
-    watcher.extend Zk::Watcher   
-    super(host, timeout, watcher)
+    @watcher = args[:watcher] || EventHandler.new(self)
+    @watcher.extend Zk::Watcher
+    super(host, timeout, @watcher)
   end
   
   # Returns if ZooKeeper is in the closed state

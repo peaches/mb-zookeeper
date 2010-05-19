@@ -1,6 +1,6 @@
 require File.join(File.dirname(__FILE__), %w[spec_helper])
 
-describe ZooKeeper::Locker, "with no paths" do
+describe ZooKeeper::Locker do
 
   before(:each) do
     @zk = ZooKeeper.new("localhost:2181")
@@ -42,6 +42,10 @@ describe ZooKeeper::Locker, "with no paths" do
     lock2.lock!.should be_false
     @zk.close
     lock2.lock!.should be_true
+  end
+
+  it "should be able to handle multi part path locks" do
+    @zk.locker("my/multi/part/path").lock!.should be_true
   end
   
 
