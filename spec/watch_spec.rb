@@ -27,7 +27,7 @@ describe ZooKeeper do
       done
     end
     @zk.exists?("/_testWatch", :watch => true)
-    @zk.create("/_testWatch", "")
+    @zk.create("/_testWatch", "", :mode => :ephemeral)
   end
 
 
