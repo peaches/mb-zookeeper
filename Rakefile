@@ -24,5 +24,5 @@ end
 task :test_watch do
   puts `gem build zookeeper.gemspec`
   puts `sudo gem install zookeeper-0.3.gem`
-  puts `spec spec/c_watch_spec.rb`
+  puts `spec spec/watch_spec.rb`
 end

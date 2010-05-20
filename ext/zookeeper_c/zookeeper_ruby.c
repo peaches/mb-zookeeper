@@ -3,7 +3,7 @@
  * Eric Maland <eric@twitter.com>
  */
 
-//#define THREADED
+#define THREADED
 
 #include "ruby.h"
 
@@ -23,12 +23,21 @@ struct zk_rb_data {
 
 static void watcher(zhandle_t *zzh, int type, int state, const char *path, void *ctx) {
   VALUE spawnedWatcher, watcher_id;
+  VALUE hash = rb_hash_new();
+  rb_hash_aset(hash, rb_str_new2("type"), INT2FIX(type));
+  rb_hash_aset(hash, rb_str_new2("state"), INT2FIX(state));
+  rb_hash_aset(hash, rb_str_new2("path"), rb_str_new2(path));
 
+  printf("ok - we had a watcher event here and we're about to fetch the spawnedWatcher\n");
   spawnedWatcher = ((struct zk_rb_data*)zoo_get_context(zzh))->spawnedWatcher;
-  if (spawnedWatcher && (spawnedWatcher != Qfalse && spawnedWatcher != Qnil)) {
-    watcher_id = rb_intern("notify");
-    rb_funcall(spawnedWatcher, watcher_id, 3, INT2FIX(type), INT2FIX(state), rb_str_new2(path));
+   printf("fetched the spawnedWatcher\n");
+  watcher_id = rb_intern("notify");
+
+  if (rb_respond_to(spawnedWatcher, watcher_id) && type != -1 && state == ZOO_CONNECTED_STATE) {
+    printf("calling into the spawnedWatcher with 'notify'\n");
+    rb_funcall(spawnedWatcher, watcher_id, 1, hash);
   }
+  printf("the hash would probably get garbage collected right about now\n");
 }
 
 #warning [emaland] incomplete - but easier to read!
@@ -49,7 +58,9 @@ static void check_errors(int rc) {
 }
 
 static void free_zk_rb_data(struct zk_rb_data* ptr) {
-  if (ptr && ptr->zh && (zoo_state(ptr->zh) == ZOO_CONNECTED_STATE)) {
+  printf("freeing the rb data\n");
+  ptr->spawnedWatcher = Qnil;
+  if (ptr->zh && (zoo_state(ptr->zh) == ZOO_CONNECTED_STATE)) {
       zookeeper_close(ptr->zh);    
   }
 }
@@ -277,9 +288,9 @@ static VALUE method_client_id(VALUE self) {
 static VALUE method_close(VALUE self) {
   FETCH_DATA_PTR(self, zk);
   if (zk->zh) {
-    check_errors(zookeeper_close(zk->zh));    
+    check_errors(zookeeper_close(zk->zh));
   }
-  return Qtrue;
+  return INT2NUM(zoo_state(zk->zh));
 }
 
 static VALUE method_deterministic_conn_order(VALUE self, VALUE yn) {
@@ -386,7 +397,8 @@ static VALUE method_zerror(VALUE self, VALUE errc) {
 
 static VALUE method_state(VALUE self) {
   FETCH_DATA_PTR(self, zk);
-  return INT2NUM(zoo_state(zk->zh));
+  VALUE st = INT2NUM(zoo_state(zk->zh));
+  return st;
 }
 
 #warning [emaland] make this a class method or global

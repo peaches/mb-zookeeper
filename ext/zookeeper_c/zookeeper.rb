@@ -16,7 +16,7 @@ class ZooKeeper < CZookeeper
     spawned_watcher = nil
     if (@watcher)
       raise "you must use eventmachine if you want a watcher in MRI" unless defined?(EM)
-      spawned_watcher = EM.spawn {|type, state, path| local_watcher.process(ZooKeeper::WatcherEvent.new(type, state, path)) }
+      spawned_watcher = EM.spawn {|event_hash| local_watcher.process(ZooKeeper::WatcherEvent.new(event_hash["type"], event_hash["state"], event_hash["path"])) }
     end
     # super(host, timeout, watcher)
     super(host, spawned_watcher)

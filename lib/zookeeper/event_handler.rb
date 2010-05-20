@@ -10,6 +10,7 @@ class ZooKeeper
     end
 
     def handle_process(event)
+      $stderr.puts(event.inspect)
       if event.path and @callbacks[event.path]
         @callbacks[event.path].each do |callback|
           callback.call(event, @zk) if callback.respond_to?(:call)

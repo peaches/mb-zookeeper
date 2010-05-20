@@ -18,7 +18,7 @@ $LIBPATH = ["#{HERE}/lib"]
 $DEFLIBPATH = []
 
 Dir.chdir(HERE) do
-  puts "chdir to: #{HERE}"
+  puts "chdir to: #{HERE}"                                         
   puts "Building zkc."
   puts(cmd = "tar xzf #{BUNDLE} 2>&1")
   raise "'#{cmd}' failed" unless system(cmd)
@@ -26,7 +26,7 @@ Dir.chdir(HERE) do
   Dir.chdir(BUNDLE_PATH) do
     puts(cmd = "./configure --prefix=#{HERE} --disable-shared --disable-dependency-tracking #{$EXTRA_CONF} 2>&1")
     raise "'#{cmd}' failed" unless system(cmd)
-    puts(cmd = "make 2>&1")
+    puts(cmd = "make -d 2>&1")
     raise "'#{cmd}' failed" unless system(cmd)
     puts(cmd = "make install 2>&1")
     raise "'#{cmd}' failed" unless system(cmd)
@@ -36,6 +36,7 @@ Dir.chdir(HERE) do
 end
 
 $LIBS << " -lzookeeper_mt"
+$CFLAGS = " -g gdb3"
 
 if have_library("zookeeper_mt") then
   create_makefile('zookeeper_c')
