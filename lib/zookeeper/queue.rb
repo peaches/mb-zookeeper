@@ -37,6 +37,25 @@ class ZooKeeper
       end
       @zk.create("#{full_queue_path}/#{message_title}", data, :mode => mode)
     end
+    
+    def messages
+      @zk.children(full_queue_path)
+    end
+    
+    def delete_message(message_title)
+      full_path = "#{full_queue_path}/#{message_title}"
+      locker = @zk.locker("#{full_queue_path}/#{message_title}")
+      if locker.lock!
+        begin
+          @zk.delete(full_path)
+          return true
+        ensure
+          locker.unlock!
+        end
+      else
+        return false
+      end
+    end
 
     #subscribe like subscribe {|title, data| handle_message!; return true}
     #returning true in the block deletes the message, false unlocks and requeues
