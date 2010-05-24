@@ -18,26 +18,33 @@ static VALUE eBadVersion = Qnil;
 struct zk_rb_data {
   zhandle_t *zh;
   clientid_t myid;
-  VALUE spawnedWatcher;
 };
 
 static void watcher(zhandle_t *zzh, int type, int state, const char *path, void *ctx) {
-  VALUE spawnedWatcher, watcher_id;
-  VALUE hash = rb_hash_new();
-  rb_hash_aset(hash, rb_str_new2("type"), INT2FIX(type));
-  rb_hash_aset(hash, rb_str_new2("state"), INT2FIX(state));
-  rb_hash_aset(hash, rb_str_new2("path"), rb_str_new2(path));
+  //VALUE spawnedWatcher, watcher_id;
 
-  printf("ok - we had a watcher event here and we're about to fetch the spawnedWatcher\n");
-  spawnedWatcher = ((struct zk_rb_data*)zoo_get_context(zzh))->spawnedWatcher;
-   printf("fetched the spawnedWatcher\n");
-  watcher_id = rb_intern("notify");
+//  spawnedWatcher = ((struct zk_rb_data*)zoo_get_context(zzh))->spawnedWatcher;
 
-  if (rb_respond_to(spawnedWatcher, watcher_id) && type != -1 && state == ZOO_CONNECTED_STATE) {
-    printf("calling into the spawnedWatcher with 'notify'\n");
-    rb_funcall(spawnedWatcher, watcher_id, 1, hash);
+  //watcher_id = rb_intern("notify");
+
+  if (state == ZOO_CONNECTED_STATE) {
+    VALUE hash = rb_hash_new();
+    rb_hash_aset(hash, rb_str_new2("type"), INT2FIX(type));
+    rb_hash_aset(hash, rb_str_new2("state"), INT2FIX(state));
+    rb_hash_aset(hash, rb_str_new2("path"), rb_str_new2(path));
+  //
+    const clientid_t *id = zoo_client_id(zzh);
+  //
+    //rb_gc_mark(hash);
+    VALUE queue = rb_hash_aref(rb_gv_get("$zookeeper_queues"), UINT2NUM(id->client_id));
+    //VALUE queue = rb_gv_get("$zookeeper_queue");//rb_funcall(rb_path2class("ZooKeeperQueues"), rb_intern("[]"), 1, UINT2NUM(id->client_id));
+
+    if (rb_respond_to(queue, rb_intern("push"))) {
+      rb_funcall(queue, rb_intern("push"), 1, hash);
+    }
+      //printf("calling into the spawnedWatcher with 'notify'\n");
+  //    rb_funcall(spawnedWatcher, watcher_id, 1, UINT2NUM(id->client_id));
   }
-  printf("the hash would probably get garbage collected right about now\n");
 }
 
 #warning [emaland] incomplete - but easier to read!
@@ -59,10 +66,10 @@ static void check_errors(int rc) {
 
 static void free_zk_rb_data(struct zk_rb_data* ptr) {
   printf("freeing the rb data\n");
-  ptr->spawnedWatcher = Qnil;
   if (ptr->zh && (zoo_state(ptr->zh) == ZOO_CONNECTED_STATE)) {
-      zookeeper_close(ptr->zh);    
+      zookeeper_close(ptr->zh);
   }
+  //free(ptr);
 }
 
 static VALUE array_from_stat(const struct Stat* stat) {
@@ -77,7 +84,7 @@ static VALUE array_from_stat(const struct Stat* stat) {
 		     LL2NUM(stat->ephemeralOwner));
 }
 
-static VALUE method_initialize(VALUE self, VALUE hostPort, VALUE watchSpawn) {
+static VALUE method_initialize(VALUE self, VALUE hostPort) {
   VALUE data;
   struct zk_rb_data* zk = NULL;
 
@@ -85,15 +92,13 @@ static VALUE method_initialize(VALUE self, VALUE hostPort, VALUE watchSpawn) {
 
   data = Data_Make_Struct(Zookeeper, struct zk_rb_data, 0, free_zk_rb_data, zk);
 
-  zk->spawnedWatcher = watchSpawn;
   zoo_set_debug_level(ZOO_LOG_LEVEL_INFO);
-  zoo_deterministic_conn_order(0);
+  zoo_deterministic_conn_order(1);
 
   zk->zh = zookeeper_init(RSTRING(hostPort)->ptr, watcher, 10000, &zk->myid, (struct zk_rb_data*)zk, 0);
   if (!zk->zh) {
     rb_raise(rb_eRuntimeError, "error connecting to zookeeper: %d", errno);
   }
-
   rb_iv_set(self, "@data", data);
 
   return Qnil;
@@ -423,7 +428,7 @@ void Init_zookeeper_c() {
 #define DEFINE_METHOD(method, args) { \
     rb_define_method(Zookeeper, #method, method_ ## method, args); }
 
-  DEFINE_METHOD(initialize, 2);
+  DEFINE_METHOD(initialize, 1);
   DEFINE_METHOD(get_children, 2);
   DEFINE_METHOD(exists, 2);
   DEFINE_METHOD(create, 3);

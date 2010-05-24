@@ -11,7 +11,7 @@ require 'zookeeper/stat'
 require 'zookeeper/keeper_exception'
 require 'zookeeper/watcher_event'
 require 'zookeeper/locker'
-require 'zookeeper/queue'
+require 'zookeeper/message_queue'
 require 'zookeeper/event_handler'
 require 'zookeeper/logging'
 
@@ -25,7 +25,7 @@ class ZooKeeper
   end
 
   def queue(name)
-    Queue.new(self, name)
+    MessageQueue.new(self, name)
   end
   
 end

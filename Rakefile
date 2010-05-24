@@ -26,3 +26,10 @@ task :test_watch do
   puts `sudo gem install zookeeper-0.3.gem`
   puts `spec spec/watch_spec.rb`
 end
+
+task :stress_watch do
+  20.times do |time|
+    puts time
+    puts `spec spec/watch_spec.rb`
+  end
+end

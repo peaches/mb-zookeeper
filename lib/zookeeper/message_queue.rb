@@ -1,5 +1,5 @@
 class ZooKeeper
-  class Queue
+  class MessageQueue
 
     attr_accessor :zk
 

@@ -1,5 +1,7 @@
 require 'zookeeper_c'
 
+$zookeeper_queues = Hash.new
+
 class ZooKeeper < CZookeeper
 
   attr_accessor :watcher
@@ -12,16 +14,33 @@ class ZooKeeper < CZookeeper
         else
           args[:watcher]
         end
-    local_watcher = @watcher
-    spawned_watcher = nil
     if (@watcher)
-      raise "you must use eventmachine if you want a watcher in MRI" unless defined?(EM)
-      spawned_watcher = EM.spawn do |event_hash|
-        local_watcher.process(ZooKeeper::WatcherEvent.new(event_hash["type"], event_hash["state"], event_hash["path"]))
+      event_queue = Queue.new
+      @watcher_thread = Thread.new(self, event_queue) do |zookeeper, queue|
+        while(true) do
+          begin
+            #$stderr.puts("popping!")
+            event_hash = queue.pop(true)
+            $stderr.puts "calling in to process: #{event_hash.inspect}"
+            zookeeper.watcher.process(ZooKeeper::WatcherEvent.new(event_hash['type'], event_hash['state'], event_hash['path']))
+          rescue ThreadError
+            #$stderr.puts('oops - watcher thread error')
+          rescue Exception => e
+            $stderr.puts("oh - another real error: \n #{e.inspect} \n #{e.backtrace}")
+          ensure
+            sleep 0.25
+          end
+        end
       end
+      spawned_watcher = true
+#      spawned_watcher = EM.spawn do |client_id|
+#        local_watcher.process(ZooKeeper::WatcherEvent.new(ZooKeeperQueues[client_id].pop))
+#      end
     end
     # super(host, timeout, watcher)
-    super(host, spawned_watcher)
+    super(host)
+    wait_until(30) { connected? }
+    $zookeeper_queues[client_id] = event_queue
   end
   
   def connected?
@@ -35,12 +54,9 @@ class ZooKeeper < CZookeeper
   def close
     if connected? and !@close_requested
       @close_requested = true
+      @watcher_thread.kill
       super
     end
-  end
-
-  def handle_watcher_event(*args)
-    @watcher.process(ZooKeeper::WatcherEvent.new(*args)) if @watcher
   end
   
   def create(path, data = "", args = {})
@@ -108,6 +124,14 @@ private
         flags |= ZOO_EPHEMERAL
     end
     flags
+  end
+
+  def wait_until(timeout=10, &block)
+    time_to_stop = Time.now + timeout
+    until yield do
+      break if Time.now > time_to_stop
+      sleep 0.3
+    end
   end
   
 end
