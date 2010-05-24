@@ -56,21 +56,29 @@ class ZooKeeper
         return false
       end
     end
+    
+    def poll!
+      find_and_process_next_available(@zk.children(full_queue_path))
+    end
 
     #subscribe like subscribe {|title, data| handle_message!; return true}
     #returning true in the block deletes the message, false unlocks and requeues
     def subscribe(&block)
       @subscription_block = block
-      @subscription_reference = @zk.watcher.register(full_queue_path) do |event, zk|
-        if event.type == WatcherEvent::EventNodeChildrenChanged
-          find_and_process_next_available(@zk.children(full_queue_path, :watch => true))
+      watch = false
+      if @zk.watcher
+        watch = true 
+        @subscription_reference = @zk.watcher.register(full_queue_path) do |event, zk|
+          if event.type == WatcherEvent::EventNodeChildrenChanged
+            find_and_process_next_available(@zk.children(full_queue_path, :watch => watch))
+          end
         end
       end
-      find_and_process_next_available(@zk.children(full_queue_path, :watch => true))
+      find_and_process_next_available(@zk.children(full_queue_path, :watch => watch))
     end
 
     def unsubscribe
-      @zk.watcher.unregister(full_queue_path, @subscription_reference)  
+      @zk.watcher.unregister(full_queue_path, @subscription_reference) if @zk.watcher  
     end
 
     #highly destructive method!
