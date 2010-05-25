@@ -266,6 +266,10 @@ class ZooKeeper < JZooKeeper
 
   end
 
+  def close!
+    close
+  end
+
   # Set the data for the node of the given path if such a node exists and the given version matches the version of the node (if the given version is -1, it matches any 
   # node's versions). Return the stat of the node.
   # 
