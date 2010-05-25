@@ -16,31 +16,11 @@ class ZooKeeper < CZookeeper
         end
     if (@watcher)
       event_queue = Queue.new
-      @watcher_thread = Thread.new(self, event_queue) do |zookeeper, queue|
-        while(true) do
-          begin
-            #$stderr.puts("popping!")
-            event_hash = queue.pop(true)
-            $stderr.puts "calling in to process: #{event_hash.inspect}"
-            zookeeper.watcher.process(ZooKeeper::WatcherEvent.new(event_hash['type'], event_hash['state'], event_hash['path']))
-          rescue ThreadError
-            #$stderr.puts('oops - watcher thread error')
-          rescue Exception => e
-            $stderr.puts("oh - another real error: \n #{e.inspect} \n #{e.backtrace}")
-          ensure
-            sleep 0.25
-          end
-        end
-      end
-      spawned_watcher = true
-#      spawned_watcher = EM.spawn do |client_id|
-#        local_watcher.process(ZooKeeper::WatcherEvent.new(ZooKeeperQueues[client_id].pop))
-#      end
+      setup_watcher_thread!(event_queue)
     end
-    # super(host, timeout, watcher)
-    super(host)
-    wait_until(30) { connected? }
-    $zookeeper_queues[client_id] = event_queue
+    super(host, !!@watcher)
+    wait_until(10) { connected? }
+    $zookeeper_queues[client_id] = event_queue if @watcher
   end
   
   def connected?
@@ -80,8 +60,8 @@ class ZooKeeper < CZookeeper
   
   def set(path, data, args = {})
     version  = args[:version] || -1
-    callback = args[:callback]
-    context  = args[:context]
+#    callback = args[:callback]
+#    context  = args[:context]
   
     super(path, data, version)
   end
@@ -128,6 +108,23 @@ private
     until yield do
       break if Time.now > time_to_stop
       sleep 0.3
+    end
+  end
+
+  def setup_watcher_thread!(event_queue)
+    @watcher_thread = Thread.new(self, event_queue) do |zookeeper, queue|
+      while(true) do
+        begin
+          event_hash = queue.pop(true)
+          zookeeper.watcher.process(ZooKeeper::WatcherEvent.new(event_hash['type'], event_hash['state'], event_hash['path']))
+        rescue ThreadError
+          #do nothing
+        rescue Exception => e
+          $stderr.puts("oh - another real error: \n #{e.inspect} \n #{e.backtrace}")
+        ensure
+          sleep 0.25
+        end
+      end
     end
   end
   

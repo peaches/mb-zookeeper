@@ -10,7 +10,7 @@ describe ZooKeeper, "with no paths" do
   
   after(:each) do
     delete_test!
-    @zk.close
+    @zk.close!
     wait_until{ @zk.closed? }
   end
 
@@ -54,10 +54,10 @@ describe ZooKeeper, "with no paths" do
   it "should remove ephemeral path when client session ends" do
     @zk.create("/test", "test_data", :mode => :ephemeral).should == "/test"
     @zk.exists?("/test").should_not be_nil
-    @zk.close
+    @zk.close!
 
     @zk = ZooKeeper.new("localhost:2181", :watcher => nil)
-    wait_until{ @zk.connected? }    
+    wait_until{ @zk.connected? }
     @zk.exists?("/test").should be_nil
   end
 
@@ -65,10 +65,10 @@ describe ZooKeeper, "with no paths" do
     created = @zk.create("/test", "test_data", :mode => :ephemeral_sequential)
     created.should =~ /test(\d+)/
     @zk.exists?(created).should_not be_nil
-    @zk.close
+    @zk.close!
 
     @zk = ZooKeeper.new("localhost:2181", :watcher => nil)
-    wait_until{ @zk.connected? }        
+    wait_until{ @zk.connected? }
     @zk.exists?(created).should be_nil
   end
 
@@ -97,7 +97,7 @@ describe ZooKeeper, "with a path" do
 
   after(:each) do
     delete_test!
-    @zk.close
+    @zk.close!
     wait_until{ @zk.closed? }
   end
 
@@ -142,7 +142,7 @@ describe ZooKeeper, "with a path" do
     children = @zk.children("/test")
     children.length.should == 2
     children.should be_include(child1.match(/\/test\/(child\d+)/)[1])
-    children.should be_include(child2.match(/\/test\/(child\d+)/)[1])    
+    children.should be_include(child2.match(/\/test\/(child\d+)/)[1])
   end
 
   it "should have no children" do
@@ -212,7 +212,7 @@ describe ZooKeeper, "with children" do
 
   after(:each) do
     delete_test!
-    @zk.close
+    @zk.close!
     wait_until{ @zk.closed? }
   end
 
@@ -252,7 +252,7 @@ end
 #  end
 #
 #  after(:each) do
-#    @zk.close
+#    @zk.close!
 #    wait_until{ @zk.closed? }
 #  end
 #
@@ -309,7 +309,7 @@ end
 #  end
 #
 #  after(:each) do
-#    @zk1.close
+#    @zk1.close!
 #    @zk2.close
 #    delete_test!
 #    wait_until{ @zk1.closed? && @zk2.closed? }
@@ -364,7 +364,7 @@ end
 #  end
 #
 #  after(:each) do
-#    @zk.close
+#    @zk.close!
 #    wait_until{ @zk.closed? }
 #  end
 #
@@ -395,7 +395,7 @@ end
 #  end
 #
 #  after(:each) do
-#    @zk.close
+#    @zk.close!
 #    wait_until{ @zk.closed? }
 #  end
 #
@@ -428,8 +428,8 @@ end
 #  end
 #
 #  after(:each) do
-#    @zk1.close
-#    @zk2.close
+#    @zk1.close!
+#    @zk2.close!
 #    wait_until{ @zk1.closed? && @zk2.closed? }
 #  end
 #

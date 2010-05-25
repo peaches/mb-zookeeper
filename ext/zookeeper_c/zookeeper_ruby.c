@@ -18,16 +18,17 @@ static VALUE eBadVersion = Qnil;
 struct zk_rb_data {
   zhandle_t *zh;
   clientid_t myid;
+  VALUE hasWatcher;
 };
 
 static void watcher(zhandle_t *zzh, int type, int state, const char *path, void *ctx) {
   //VALUE spawnedWatcher, watcher_id;
 
-//  spawnedWatcher = ((struct zk_rb_data*)zoo_get_context(zzh))->spawnedWatcher;
+  VALUE hasWatcher = ((struct zk_rb_data*)zoo_get_context(zzh))->hasWatcher;
 
   //watcher_id = rb_intern("notify");
 
-  if (state == ZOO_CONNECTED_STATE) {
+  if (hasWatcher == Qtrue && state == ZOO_CONNECTED_STATE) {
     VALUE hash = rb_hash_new();
     rb_hash_aset(hash, rb_str_new2("type"), INT2FIX(type));
     rb_hash_aset(hash, rb_str_new2("state"), INT2FIX(state));
@@ -83,7 +84,7 @@ static VALUE array_from_stat(const struct Stat* stat) {
 		     LL2NUM(stat->ephemeralOwner));
 }
 
-static VALUE method_initialize(VALUE self, VALUE hostPort) {
+static VALUE method_initialize(VALUE self, VALUE hostPort, VALUE hasWatcher) {
   VALUE data;
   struct zk_rb_data* zk = NULL;
 
@@ -93,7 +94,7 @@ static VALUE method_initialize(VALUE self, VALUE hostPort) {
 
   zoo_set_debug_level(ZOO_LOG_LEVEL_INFO);
   zoo_deterministic_conn_order(1);
-
+  zk->hasWatcher = hasWatcher;
   zk->zh = zookeeper_init(RSTRING(hostPort)->ptr, watcher, 10000, &zk->myid, (struct zk_rb_data*)zk, 0);
   if (!zk->zh) {
     rb_raise(rb_eRuntimeError, "error connecting to zookeeper: %d", errno);
@@ -291,7 +292,9 @@ static VALUE method_client_id(VALUE self) {
 
 static VALUE method_close(VALUE self) {
   FETCH_DATA_PTR(self, zk);
-  check_errors(zookeeper_close(zk->zh));
+  if (zoo_state(zk->zh) == ZOO_CONNECTED_STATE) {
+      check_errors(zookeeper_close(zk->zh));    
+  }
   return INT2NUM(zoo_state(zk->zh));
 }
 
@@ -425,7 +428,7 @@ void Init_zookeeper_c() {
 #define DEFINE_METHOD(method, args) { \
     rb_define_method(Zookeeper, #method, method_ ## method, args); }
 
-  DEFINE_METHOD(initialize, 1);
+  DEFINE_METHOD(initialize, 2);
   DEFINE_METHOD(get_children, 2);
   DEFINE_METHOD(exists, 2);
   DEFINE_METHOD(create, 3);
@@ -446,7 +449,7 @@ void Init_zookeeper_c() {
   DEFINE_METHOD(set2, -1);
   DEFINE_METHOD(set_debug_level, 1);
   DEFINE_METHOD(set_log_stream, 1);
-  DEFINE_METHOD(set_watcher, 2);
+//  DEFINE_METHOD(set_watcher, 2);
   DEFINE_METHOD(state, 0);
   DEFINE_METHOD(zerror, 1);
 
