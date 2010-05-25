@@ -36,6 +36,8 @@ class ZooKeeper
         message_title = "message"
       end
       @zk.create("#{full_queue_path}/#{message_title}", data, :mode => mode)
+    rescue KeeperException::NodeExists
+      return false
     end
     
     def messages

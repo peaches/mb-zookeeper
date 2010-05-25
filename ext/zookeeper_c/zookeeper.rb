@@ -37,6 +37,8 @@ class ZooKeeper < CZookeeper
   def create(path, data = "", args = {})
     mode = args[:mode] || :ephemeral
     super(path, data, flags_from_mode(mode))
+  rescue NodeExistsError
+    raise ZooKeeper::KeeperException::NodeExists.new
   end
 
   def exists?(path, args = {})

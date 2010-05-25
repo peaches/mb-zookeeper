@@ -14,6 +14,7 @@
 static VALUE Zookeeper = Qnil;
 static VALUE eNoNode = Qnil;
 static VALUE eBadVersion = Qnil;
+static VALUE eNodeExists = Qnil;
 
 struct zk_rb_data {
   zhandle_t *zh;
@@ -47,6 +48,8 @@ static void check_errors(int rc) {
   case ZBADVERSION:
     rb_raise(eBadVersion, "expected version does not match actual version");
     break;
+  case ZNODEEXISTS:
+    rb_raise(eNodeExists, "Node exists");
   default:
     rb_raise(rb_eRuntimeError, "unknown error returned from zookeeper: %d (%s)", rc, zerror(rc));
   }
@@ -443,6 +446,7 @@ void Init_zookeeper_c() {
 
   eNoNode = rb_define_class_under(Zookeeper, "NoNodeError", rb_eRuntimeError);
   eBadVersion = rb_define_class_under(Zookeeper, "BadVersionError", rb_eRuntimeError);
+  eNodeExists = rb_define_class_under(Zookeeper, "NodeExistsError", rb_eRuntimeError);
 
 #define EXPORT_CONST(x) { rb_define_const(Zookeeper, #x, INT2FIX(x)); }
 
