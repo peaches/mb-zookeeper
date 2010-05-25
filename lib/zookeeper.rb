@@ -13,6 +13,7 @@ require 'zookeeper/watcher_event'
 require 'zookeeper/locker'
 require 'zookeeper/message_queue'
 require 'zookeeper/event_handler'
+require 'zookeeper/connection_pool'
 require 'zookeeper/logging'
 
 class ZooKeeper
