@@ -1,8 +1,4 @@
-#$stderr.sync = $stdout.sync = true
-require 'rubygems'
-
-$LOAD_PATH << "#{File.dirname(__FILE__)}/../ext" << "#{File.dirname(__FILE__)}/../lib"
-require 'zookeeper'
+require File.join(File.dirname(__FILE__), %w[spec_helper])
 
 describe ZooKeeper do
   before(:each) do
@@ -25,7 +21,7 @@ describe ZooKeeper do
       end
       @zk.exists?("/_testWatch", :watch => true)
       @zk.create("/_testWatch", "", :mode => :ephemeral)
-      sleep 0.1
+      sleep 0.3
       callback_called.should be_true
     end
   end

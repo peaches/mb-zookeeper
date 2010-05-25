@@ -67,9 +67,9 @@ static void check_errors(int rc) {
 
 static void free_zk_rb_data(struct zk_rb_data* ptr) {
   if (ptr->zh && (zoo_state(ptr->zh) == ZOO_CONNECTED_STATE)) {
+      ptr->hasWatcher = Qfalse;
       zookeeper_close(ptr->zh);
   }
-  //free(ptr);
 }
 
 static VALUE array_from_stat(const struct Stat* stat) {
@@ -293,6 +293,7 @@ static VALUE method_client_id(VALUE self) {
 static VALUE method_close(VALUE self) {
   FETCH_DATA_PTR(self, zk);
   if (zoo_state(zk->zh) == ZOO_CONNECTED_STATE) {
+      zk->hasWatcher = Qfalse;  
       check_errors(zookeeper_close(zk->zh));    
   }
   return INT2NUM(zoo_state(zk->zh));

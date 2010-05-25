@@ -63,6 +63,47 @@ You first register your path with the event handler (if you're using the default
   client2.close!
   lock1.lock #true
 
+=== (this fork) Message Queue ===
+  client1 = ZooKeeper.new("localhost:2181", :watcher => :default)
+  client2 = ZooKeeper.new("localhost:2181", :watcher => :default)
+
+  publisher = client1.queue("myqueue")
+  receiver = client2.queue("myqueue")
+
+  receiver.subscribe do |title, data|
+    # data will be whatever was published, title will be the node name
+    # for the message
+
+    $stderr.puts "got a message with: #{data}"
+
+    # having a true state from the block will mark the message as 'answered'
+    # sending back a false will requeue
+
+    true
+  end
+
+  publisher.publish("my data!")
+
+  << got a message with: my data!
+
+=== (this fork) Connection Pools ===
+
+For rails like apps - to do single writes... we can make a pool
+with checkin and checkout capabilities.
+
+  pool = ZooKeeper::ConnectionPool.new("localhost:2181", 10, :watcher => false)
+  pool.checkout do |client|
+    #do stuff with the client
+    client.exists?("blah")
+  end
+  # client is checked back into the pool
+  # if there are no clients available - checkout blocks
+  # but you can override that like so:
+
+  connection = pool.checkout(false)
+  # now if there are no clients available - checkout will simply return
+  # false
+
 zookeeper
     by Shane Mingins
     http://github.com/smingins/zookeeper/tree/master
