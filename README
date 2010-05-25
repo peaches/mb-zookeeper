@@ -60,7 +60,7 @@ You first register your path with the event handler (if you're using the default
 
   # locks are also released on a client close/crash
   lock1.lock #false
-  client2.close
+  client2.close!
   lock1.lock #true
 
 zookeeper
