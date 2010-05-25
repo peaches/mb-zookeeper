@@ -36,7 +36,9 @@ Dir.chdir(HERE) do
 end
 
 $LIBS << " -lzookeeper_mt"
-$CFLAGS = " -g gdb3"
+if ENV['DEBUG']
+  $CFLAGS = " -g gdb3"
+end
 
 if have_library("zookeeper_mt") then
   create_makefile('zookeeper_c')

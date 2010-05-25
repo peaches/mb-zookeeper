@@ -1,13 +1,12 @@
 require 'zookeeper_c'
 
-$zookeeper_queues = Hash.new
-
 class ZooKeeper < CZookeeper
 
   attr_accessor :watcher
 
   def initialize(host, args = {})
     # timeout = args[:timeout] || DEFAULTS[:timeout]
+    event_queue = false
     @watcher =
         if args[:watcher] == :default
           EventHandler.new(self)
@@ -18,9 +17,8 @@ class ZooKeeper < CZookeeper
       event_queue = Queue.new
       setup_watcher_thread!(event_queue)
     end
-    super(host, !!@watcher)
+    super(host, event_queue)
     wait_until(10) { connected? }
-    $zookeeper_queues[client_id] = event_queue if @watcher
   end
   
   def connected?

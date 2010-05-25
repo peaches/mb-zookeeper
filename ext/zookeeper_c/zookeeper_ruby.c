@@ -18,33 +18,20 @@ static VALUE eBadVersion = Qnil;
 struct zk_rb_data {
   zhandle_t *zh;
   clientid_t myid;
-  VALUE hasWatcher;
+  VALUE eventQueue;
 };
 
 static void watcher(zhandle_t *zzh, int type, int state, const char *path, void *ctx) {
-  //VALUE spawnedWatcher, watcher_id;
+  VALUE eventQueue = ((struct zk_rb_data*)zoo_get_context(zzh))->eventQueue;
 
-  VALUE hasWatcher = ((struct zk_rb_data*)zoo_get_context(zzh))->hasWatcher;
-
-  //watcher_id = rb_intern("notify");
-
-  if (hasWatcher == Qtrue && state == ZOO_CONNECTED_STATE) {
-    VALUE hash = rb_hash_new();
-    rb_hash_aset(hash, rb_str_new2("type"), INT2FIX(type));
-    rb_hash_aset(hash, rb_str_new2("state"), INT2FIX(state));
-    rb_hash_aset(hash, rb_str_new2("path"), rb_str_new2(path));
-  //
-    const clientid_t *id = zoo_client_id(zzh);
-  //
-    //rb_gc_mark(hash);
-    VALUE queue = rb_hash_aref(rb_gv_get("$zookeeper_queues"), UINT2NUM(id->client_id));
-    //VALUE queue = rb_gv_get("$zookeeper_queue");//rb_funcall(rb_path2class("ZooKeeperQueues"), rb_intern("[]"), 1, UINT2NUM(id->client_id));
-
-    if (rb_respond_to(queue, rb_intern("push"))) {
-      rb_funcall(queue, rb_intern("push"), 1, hash);
+  if (eventQueue != Qfalse && eventQueue != Qnil) {
+    if (rb_respond_to(eventQueue, rb_intern("push"))) {
+      VALUE hash = rb_hash_new();
+      rb_hash_aset(hash, rb_str_new2("type"), INT2FIX(type));
+      rb_hash_aset(hash, rb_str_new2("state"), INT2FIX(state));
+      rb_hash_aset(hash, rb_str_new2("path"), rb_str_new2(path));
+      rb_funcall(eventQueue, rb_intern("push"), 1, hash);
     }
-      //printf("calling into the spawnedWatcher with 'notify'\n");
-  //    rb_funcall(spawnedWatcher, watcher_id, 1, UINT2NUM(id->client_id));
   }
 }
 
@@ -67,7 +54,7 @@ static void check_errors(int rc) {
 
 static void free_zk_rb_data(struct zk_rb_data* ptr) {
   if (ptr->zh && (zoo_state(ptr->zh) == ZOO_CONNECTED_STATE)) {
-      ptr->hasWatcher = Qfalse;
+      ptr->eventQueue = Qfalse;
       zookeeper_close(ptr->zh);
   }
 }
@@ -84,7 +71,7 @@ static VALUE array_from_stat(const struct Stat* stat) {
 		     LL2NUM(stat->ephemeralOwner));
 }
 
-static VALUE method_initialize(VALUE self, VALUE hostPort, VALUE hasWatcher) {
+static VALUE method_initialize(VALUE self, VALUE hostPort, VALUE eventQueue) {
   VALUE data;
   struct zk_rb_data* zk = NULL;
 
@@ -94,7 +81,7 @@ static VALUE method_initialize(VALUE self, VALUE hostPort, VALUE hasWatcher) {
 
   zoo_set_debug_level(ZOO_LOG_LEVEL_INFO);
   zoo_deterministic_conn_order(1);
-  zk->hasWatcher = hasWatcher;
+  zk->eventQueue = eventQueue;
   zk->zh = zookeeper_init(RSTRING(hostPort)->ptr, watcher, 10000, &zk->myid, (struct zk_rb_data*)zk, 0);
   if (!zk->zh) {
     rb_raise(rb_eRuntimeError, "error connecting to zookeeper: %d", errno);
@@ -293,7 +280,7 @@ static VALUE method_client_id(VALUE self) {
 static VALUE method_close(VALUE self) {
   FETCH_DATA_PTR(self, zk);
   if (zoo_state(zk->zh) == ZOO_CONNECTED_STATE) {
-      zk->hasWatcher = Qfalse;  
+      zk->eventQueue = Qfalse;
       check_errors(zookeeper_close(zk->zh));    
   }
   return INT2NUM(zoo_state(zk->zh));
