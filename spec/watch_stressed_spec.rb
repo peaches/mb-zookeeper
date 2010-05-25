@@ -5,32 +5,28 @@ $LOAD_PATH << "#{File.dirname(__FILE__)}/../ext" << "#{File.dirname(__FILE__)}/.
 require 'zookeeper'
 
 describe ZooKeeper do
-  if defined?(JRUBY_VERSION)
-    #define this so that EM::Specs done is a no-op in jruby
-    def done
-    end
-  else
-    #include EM::Spec
+  before(:each) do
+    @zk = ZooKeeper.new("localhost:2181", :watcher => :default)
+    wait_until { @zk.connected? }
   end
+
+  after(:each) do
+      @zk.delete("/_testWatch")
+      @zk.close!
+      wait_until { !@zk.connected? }    
+  end
+
   20.times do |time|
     it "should call back to registers: #{time}" do      
-      @zk = ZooKeeper.new("localhost:2181", :watcher => :default)
+      callback_called = false
       @zk.watcher.register("/_testWatch") do |event, zk|
-        $stderr.puts("registered callback fired")
         event.path.should == "/_testWatch"
-        $stderr.puts("closing")
-        zk.close
-        wait_until { !@zk.connected? }
-        $stderr.puts("stopping")
+        callback_called = true
       end
-      $stderr.puts("connecting")
-      wait_until { @zk.connected? }
       @zk.exists?("/_testWatch", :watch => true)
-      $stderr.puts("creating")
       @zk.create("/_testWatch", "", :mode => :ephemeral)
-      sleep 0.25
-      @zk.delete("/_testWatch")
-      @zk.close
+      sleep 0.2
+      callback_called.should be_true
     end
   end
 

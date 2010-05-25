@@ -51,12 +51,9 @@ class ZooKeeper < CZookeeper
     !connected?
   end
   
-  def close
-    if connected? and !@close_requested
-      @close_requested = true
-      @watcher_thread.kill
-      super
-    end
+  def close!
+    @watcher_thread.kill if @watcher_thread
+    close
   end
   
   def create(path, data = "", args = {})

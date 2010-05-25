@@ -26,7 +26,7 @@ describe ZooKeeper do
       $stderr.puts("registered callback fired")
       event.path.should == "/_testWatch"
       $stderr.puts("closing")
-      zk.close
+      zk.close!
       wait_until { !@zk.connected? }
       $stderr.puts("stopping")
     end
@@ -36,7 +36,7 @@ describe ZooKeeper do
     $stderr.puts("creating")
     @zk.create("/_testWatch", "", :mode => :ephemeral)
     sleep 1
-    @zk.close
+    @zk.close!
   end
 
   def wait_until(timeout=10, &block)

@@ -65,7 +65,6 @@ static void check_errors(int rc) {
 }
 
 static void free_zk_rb_data(struct zk_rb_data* ptr) {
-  printf("freeing the rb data\n");
   if (ptr->zh && (zoo_state(ptr->zh) == ZOO_CONNECTED_STATE)) {
       zookeeper_close(ptr->zh);
   }
@@ -292,9 +291,7 @@ static VALUE method_client_id(VALUE self) {
 
 static VALUE method_close(VALUE self) {
   FETCH_DATA_PTR(self, zk);
-  if (zk->zh) {
-    check_errors(zookeeper_close(zk->zh));
-  }
+  check_errors(zookeeper_close(zk->zh));
   return INT2NUM(zoo_state(zk->zh));
 }
 
@@ -414,13 +411,13 @@ static VALUE method_set_log_stream(VALUE self, VALUE stream) {
   return Qnil;
 }
 
-static VALUE method_set_watcher(VALUE self, VALUE new_watcher) {
-  FETCH_DATA_PTR(self, zk);
-#warning [emaland] needs to be tested/implemented
-  return Qnil;
-  //  watcher_fn old_watcher = zoo_set_watcher(zk->zh, new_watcher);
-  //  return old_watcher;
-}
+//static VALUE method_set_watcher(VALUE self, VALUE new_watcher) {
+//  FETCH_DATA_PTR(self, zk);
+//#warning [emaland] needs to be tested/implemented
+//  return Qnil;
+//  //  watcher_fn old_watcher = zoo_set_watcher(zk->zh, new_watcher);
+//  //  return old_watcher;
+//}
 
 void Init_zookeeper_c() {
   Zookeeper = rb_define_class("CZookeeper", rb_cObject);
