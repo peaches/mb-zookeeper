@@ -40,6 +40,20 @@ describe ZooKeeper::Queue do
     message_title.should be_true
   end
 
+  it "should work even after processing a message from before" do
+    @publish_queue.publish("data1", "title")
+    message_times = 0
+    @consume_queue.subscribe do |title, data|
+      title.should == "title"
+      message_times += 1
+    end
+
+    @publish_queue.publish("data2", "title")
+    wait_until { message_times = 2 }
+    message_times.should == 2
+
+  end
+
 
 
 end

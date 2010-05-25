@@ -71,9 +71,7 @@ class ZooKeeper
       if @zk.watcher
         watch = true 
         @subscription_reference = @zk.watcher.register(full_queue_path) do |event, zk|
-          if event.type == WatcherEvent::EventNodeChildrenChanged
-            find_and_process_next_available(@zk.children(full_queue_path, :watch => watch))
-          end
+          find_and_process_next_available(@zk.children(full_queue_path, :watch => !!zk.watcher))
         end
       end
       find_and_process_next_available(@zk.children(full_queue_path, :watch => watch))
