@@ -12,18 +12,18 @@ More info can be found in ext/zookeeper_j/zookeeper.rb
 
 === INSTALLING THIS FORK (tobowers):
 
-==== MRI ====
+==== MRI
 
 gem build zookeeper.gemspec
 gem install zookeeper-0.3.gem
 
-==== JRUBY ====
+==== JRUBY
 
 jruby -S gem build zookeeper.gemspec
 jruby -S gem install zookeeper-0.3-java.gem
 
 
-=== (this fork) Event Handling ===
+=== (this fork) Event Handling
 
 Both the C and jruby versions expose the same API for watchers.
 Default is *no* watcher (:watch => true) will be ignored.
@@ -44,7 +44,7 @@ You first register your path with the event handler (if you're using the default
 
   << got an event on "/mypath"
 
-=== (this fork) Locking ===
+=== (this fork) Locking
 
   client1 = ZooKeeper.new("localhost:2181", :watcher => :default)  
   client2 = ZooKeeper.new("localhost:2181", :watcher => :default)
@@ -63,7 +63,7 @@ You first register your path with the event handler (if you're using the default
   client2.close!
   lock1.lock #true
 
-=== (this fork) Message Queue ===
+=== (this fork) Message Queue
   client1 = ZooKeeper.new("localhost:2181", :watcher => :default)
   client2 = ZooKeeper.new("localhost:2181", :watcher => :default)
 
@@ -86,7 +86,7 @@ You first register your path with the event handler (if you're using the default
 
   << got a message with: my data!
 
-=== (this fork) Connection Pools ===
+=== (this fork) Connection Pools
 
 For rails like apps - to do single writes... we can make a pool
 with checkin and checkout capabilities.
