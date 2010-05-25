@@ -1,7 +1,6 @@
 == THIS FORK (tobowers):
 
 I had a lot of trouble with the original so I forked this off http://github.com/davidgiffin/zookeeper/tree/
-Unfortunately, it appears all the specs are broken and the interface has changed.
 Ephemeral is now the default.
 create "mode" can now be any one of: :persistent_sequential, :ephemeral_sequential, :persistent, :ephemeral
 default is :ephemeral
@@ -13,7 +12,56 @@ More info can be found in ext/zookeeper_j/zookeeper.rb
 
 === INSTALLING THIS FORK (tobowers):
 
+==== MRI ====
 
+gem build zookeeper.gemspec
+gem install zookeeper-0.3.gem
+
+==== JRUBY ====
+
+jruby -S gem build zookeeper.gemspec
+jruby -S gem install zookeeper-0.3-java.gem
+
+
+=== (this fork) Event Handling ===
+
+Both the C and jruby versions expose the same API for watchers.
+Default is *no* watcher (:watch => true) will be ignored.
+
+You first register your path with the event handler (if you're using the default).
+
+  client = ZooKeeper.new("localhost:2181", :watcher => :default)
+  client.event_handler.register("/mypath") do |event, zk|
+    # here the event will be a ZooKeeper::WatcherEvent object and zk
+    # will be the original client
+    $stderr.puts "got an event on #{event.path}"
+  end
+  # then we register a watch
+  client.exists?("/mypath", :watch => true) #false
+  client.create("/mypath", "mydata", :mode => :ephemeral)
+  # the registered block above will fire within a few hundred miliseconds
+  sleep 0.2
+
+  << got an event on "/mypath"
+
+=== (this fork) Locking ===
+
+  client1 = ZooKeeper.new("localhost:2181", :watcher => :default)  
+  client2 = ZooKeeper.new("localhost:2181", :watcher => :default)
+
+  lock1 = client1.locker("/mypath")
+  lock1.lock #true
+
+  lock2 = client2.locker("/mypath")
+  lock2.lock #false
+
+  lock1.unlock #true
+  lock2.lock #true
+
+  # locks are also released on a client close/crash
+  lock1.lock #false
+  client2.close
+  lock1.lock #true
 
 zookeeper
     by Shane Mingins

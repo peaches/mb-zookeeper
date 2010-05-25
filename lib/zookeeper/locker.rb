@@ -45,7 +45,7 @@ class ZooKeeper
     end
 
     def lock_path(path)
-      "#{@root_lock_node}#{path.gsub("/", "__")}"
+      "#{@root_lock_node}/#{path.gsub("/", "__")}"
     end
 
     def digit_from_lock_file(lock_path)

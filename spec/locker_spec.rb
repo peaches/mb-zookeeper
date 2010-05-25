@@ -10,8 +10,8 @@ describe ZooKeeper::Locker do
   end
 
   after(:each) do
-    @zk.close
-    @zk2.close
+    @zk.close!
+    @zk2.close!
     wait_until{ !@zk.connected? && !@zk2.connected? }
   end
 
@@ -40,7 +40,7 @@ describe ZooKeeper::Locker do
 
     lock1.lock!.should be_true
     lock2.lock!.should be_false
-    @zk.close
+    @zk.close!
     lock2.lock!.should be_true
   end
 
