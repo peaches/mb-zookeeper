@@ -10,8 +10,12 @@ class ZooKeeper
     end
 
     def handle_process(event)
-      if event.path and @callbacks[event.path]
+      if event.path and !event.path.empty? and @callbacks[event.path]
         @callbacks[event.path].each do |callback|
+          callback.call(event, @zk) if callback.respond_to?(:call)
+        end
+      elsif event.path and event.path.empty? and @callbacks["state_#{event.state}"]
+        @callbacks["state_#{event.state}"].each do |callback|
           callback.call(event, @zk) if callback.respond_to?(:call)
         end
       end
@@ -21,6 +25,16 @@ class ZooKeeper
       @callbacks[path] ||= []
       @callbacks[path] << block
       return @callbacks[path].index(block)
+    end
+
+    def register_state_handler(state, &block)
+      @callbacks["state_#{state}"] ||= []
+      @callbacks["state_#{state}"] << block
+      return @callbacks["state_#{state}"].index(block)
+    end
+
+    def unregister_state_handler(state, index)
+      @callbacks["state_#{state}"][index] = nil 
     end
 
     def unregister(path, index)

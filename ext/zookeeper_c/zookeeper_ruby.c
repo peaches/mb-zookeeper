@@ -283,8 +283,8 @@ static VALUE method_client_id(VALUE self) {
 static VALUE method_close(VALUE self) {
   FETCH_DATA_PTR(self, zk);
   if (zoo_state(zk->zh) == ZOO_CONNECTED_STATE) {
-      zk->eventQueue = Qfalse;
-      check_errors(zookeeper_close(zk->zh));    
+    zk->eventQueue = Qfalse;
+    check_errors(zookeeper_close(zk->zh));
   }
   return INT2NUM(zoo_state(zk->zh));
 }

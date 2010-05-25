@@ -13,7 +13,7 @@ describe ZooKeeper do
       wait_until { !@zk.connected? }
   end
 
-  it "should call back to registers" do
+  it "should call back to path registers" do
     callback_called = false
 
     @zk.watcher.register("/_testWatch") do |event, zk|
@@ -24,6 +24,18 @@ describe ZooKeeper do
     @zk.create("/_testWatch", "", :mode => :ephemeral)
     sleep 0.3
     callback_called.should be_true
+  end
+
+  it "should be able to handle state changes" do
+    pending 'close disables the watcher'
+#    disconnect_called = false
+#    @zk.watcher.register_state_handler(ZooKeeper::WatcherEvent::KeeperStateDisconnected) do |event, zk|
+#      disconnect_called = true
+#      event.state.should == ZooKeeper::WatcherEvent::KeeperStateDisconnected
+#    end
+#    @zk.close!
+#    sleep 0.3
+#    disconnect_called.should be_true
   end
 
   def wait_until(timeout=10, &block)
