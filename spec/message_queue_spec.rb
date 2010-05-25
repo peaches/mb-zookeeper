@@ -13,29 +13,31 @@ describe ZooKeeper::Queue do
 
   after(:each) do
     @consume_queue.destroy!
-    @zk.close
-    @zk2.close
+    @zk.close!
+    @zk2.close!
     wait_until{ !@zk.connected? && !@zk2.connected? }
   end
 
   it "should be able to receive a published message" do
     message_received = false
     @consume_queue.subscribe do |title, data|
-      message_received = data
+      data.should == 'mydata'
+      message_received = true
     end
     @publish_queue.publish("mydata")
-    wait_until {message_received == 'mydata'}
-    message_received.should == "mydata"
+    wait_until {message_received }
+    message_received.should be_true
   end
 
   it "should be able to receive a custom message title" do
     message_title = false
     @consume_queue.subscribe do |title, data|
-      message_title = title
+      title.should == 'title'
+      message_title = true
     end
     @publish_queue.publish("data", "title")
-    wait_until {message_title == 'title'}
-    message_title.should == "title"
+    wait_until { message_title }
+    message_title.should be_true
   end
 
 
