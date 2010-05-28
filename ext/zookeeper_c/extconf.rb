@@ -35,7 +35,13 @@ Dir.chdir(HERE) do
   system("rm -rf #{BUNDLE_PATH}") unless ENV['DEBUG'] or ENV['DEV']
 end
 
-$LIBS << " -lzookeeper_mt"
+# Absolutely prevent the linker from picking up any other zookeeper_mt
+Dir.chdir("#{HERE}/lib") do
+  system("cp -f libzookeeper_mt.a libzookeeper_mt_gem.a") 
+  system("cp -f libzookeeper_mt.la libzookeeper_mt_gem.la") 
+end
+$LIBS << " -Lzookeeper_mt_gem"
+
 if ENV['DEBUG']
   $CFLAGS = " -g gdb3"
 end
