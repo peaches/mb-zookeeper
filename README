@@ -31,7 +31,7 @@ Default is *no* watcher (:watch => true) will be ignored.
 You first register your path with the event handler (if you're using the default).
 
   client = ZooKeeper.new("localhost:2181", :watcher => :default)
-  client.event_handler.register("/mypath") do |event, zk|
+  client.watcher.register("/mypath") do |event, zk|
     # here the event will be a ZooKeeper::WatcherEvent object and zk
     # will be the original client
     $stderr.puts "got an event on #{event.path}"
