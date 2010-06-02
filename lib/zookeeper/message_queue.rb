@@ -63,7 +63,8 @@ class ZooKeeper
       find_and_process_next_available(@zk.children(full_queue_path))
     end
 
-    #subscribe like subscribe {|title, data| handle_message!; return true}
+    #subscribe like this:
+    #  subscribe {|title, data| handle_message!; true}
     #returning true in the block deletes the message, false unlocks and requeues
     def subscribe(&block)
       @subscription_block = block
