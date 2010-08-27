@@ -49,7 +49,7 @@ describe ZooKeeper::Queue do
     end
 
     @publish_queue.publish("data2", "title")
-    wait_until { message_times = 2 }
+    wait_until { message_times == 2 }
     message_times.should == 2
 
   end
