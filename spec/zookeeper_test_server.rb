@@ -1,3 +1,5 @@
+SPEC_LOCATION = File.expand_path(File.dirname(__FILE__))
+
 class ZooKeeperTestServer
 
   @@log_level_set = false
@@ -12,15 +14,15 @@ class ZooKeeperTestServer
     FileUtils.mkdir_p("/tmp/zookeeper/server1/data")
     if background
       thread = Thread.new do
-        `./spec/zookeeper-3.3.1/bin/zkServer.sh start`
+        `#{SPEC_LOCATION}/zookeeper-3.3.1/bin/zkServer.sh start`
       end
     else
-      `./spec/zookeeper-3.3.1/bin/zkServer.sh start`
+      `#{SPEC_LOCATION}/zookeeper-3.3.1/bin/zkServer.sh start`
     end
   end
 
   def self.stop
-    `./spec/zookeeper-3.3.1/bin/zkServer.sh stop`
+    `#{SPEC_LOCATION}/zookeeper-3.3.1/bin/zkServer.sh stop`
     FileUtils.remove_dir("/tmp/zookeeper", true)
   end
   

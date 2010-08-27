@@ -5,15 +5,18 @@ require 'spec/zookeeper_test_server'
 
 
 Spec::Runner.configure do |config|  
-  config.before(:each) do
-    #ZooKeeperTestServer.start
-    #wait_until { ZooKeeperTestServer.running? }
+  config.before(:all) do
+    ZooKeeperTestServer.start
+    wait_until { ZooKeeperTestServer.running? }
+    @test_connection = ZooKeeper.new("localhost:2181", :watcher => :default)
+    wait_until{ @test_connection.connected? }
+    @test_connection.close!
   end
 
-#  config.after(:each) do
-#    ZooKeeperTestServer.stop
-#    wait_until { !ZooKeeperTestServer.running? }
-#  end
+  config.after(:all) do
+    ZooKeeperTestServer.stop
+    wait_until { !ZooKeeperTestServer.running? }
+  end
 end
 
 # method to wait until block passed returns true or timeout (default is 10 seconds) is reached 

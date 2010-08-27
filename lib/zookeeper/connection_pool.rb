@@ -5,7 +5,7 @@ class ZooKeeper
       @connection_args = args
       @number_of_connections = number_of_connections
       @host = host
-      @pool = Queue.new
+      @pool = ::Queue.new
       populate_pool!
     end
 

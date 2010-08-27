@@ -1,6 +1,6 @@
 require File.join(File.dirname(__FILE__), %w[spec_helper])
 
-describe ZooKeeper::Queue do
+describe ZooKeeper::MessageQueue do
 
   before(:each) do
     @zk = ZooKeeper.new("localhost:2181", :watcher => :default)
