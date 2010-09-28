@@ -2,9 +2,12 @@ $LOAD_PATH << "#{File.dirname(__FILE__)}/../ext" << "#{File.dirname(__FILE__)}/.
 require 'zookeeper'
 require 'spec/mock_callbacks'
 require 'spec/zookeeper_test_server'
+require 'fileutils'
 
-
-Spec::Runner.configure do |config|  
+RSpec.configure do |config|
+  
+  config.mock_with :rspec
+    
   config.before(:all) do
     ZooKeeperTestServer.start
     wait_until { ZooKeeperTestServer.running? }

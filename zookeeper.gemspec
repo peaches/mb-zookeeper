@@ -27,5 +27,7 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib", "ext"]
   s.rubygems_version = %q{1.1.0}
   s.summary =  %q{A Ruby client interface to the Java ZooKeeper server.}
+
+  s.add_development_dependency "rspec", ">=2.0.0.beta.22"
 end
 
