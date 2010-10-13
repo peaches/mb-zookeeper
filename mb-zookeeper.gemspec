@@ -1,5 +1,5 @@
 Gem::Specification.new do |s|
-  s.name = %q{zookeeper}
+  s.name = %q{mb-zookeeper}
   s.version = "0.3"
   s.specification_version = 2 if s.respond_to? :specification_version=
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
