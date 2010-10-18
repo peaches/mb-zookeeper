@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = %q{mb-zookeeper}
-  s.version = "0.3"
+  s.version = "0.3.1"
   s.specification_version = 2 if s.respond_to? :specification_version=
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Shane Mingins", "Topper Bowers"]
@@ -16,7 +16,7 @@ Gem::Specification.new do |s|
   when /java/
      s.files += ["ext/zookeeper_j/log4j-1.2.15.jar", "ext/zookeeper_j/zookeeper-3.3.1.jar",
                  "ext/zookeeper_j/extensions.rb", "ext/zookeeper_j/zookeeper.rb"]
-     s.platform = 'jruby'
+     s.platform = 'java'
   else
      s.files += ["ext/zookeeper_c/zookeeper_ruby.c", "ext/zookeeper_c/zookeeper.rb", "ext/zookeeper_c/zkc-3.3.1.tar.gz"]
      s.extensions = ["ext/zookeeper_c/extconf.rb"]
@@ -28,6 +28,6 @@ Gem::Specification.new do |s|
   s.rubygems_version = %q{1.1.0}
   s.summary =  %q{A Ruby client interface to the Java ZooKeeper server.}
 
-  s.add_development_dependency "rspec", ">=2.0.0.beta.22"
+  s.add_development_dependency "rspec", ">=2.0.0"
 end
 

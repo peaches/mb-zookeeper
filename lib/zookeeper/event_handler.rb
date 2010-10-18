@@ -14,7 +14,7 @@ class ZooKeeper
         @callbacks[event.path].each do |callback|
           callback.call(event, @zk) if callback.respond_to?(:call)
         end
-      elsif event.path and event.path.empty? and @callbacks["state_#{event.state}"]
+      elsif (!event.path || event.path.empty?) and @callbacks["state_#{event.state}"]
         @callbacks["state_#{event.state}"].each do |callback|
           callback.call(event, @zk) if callback.respond_to?(:call)
         end

@@ -20,13 +20,13 @@ describe ZooKeeper::ConnectionPool do
 
   it "using non-blocking it should only let you checkout the pool size" do
     connections = []
-    @pool_size.times do
+    wait_until {
+      @connection_pool.checkout(false)
+    }
+    (@pool_size - 1).times do
       connections << @connection_pool.checkout(false)
     end
     @connection_pool.checkout(false).should be_false
-    connections.each do |connection|
-      @connection_pool.checkin(connection)
-    end
   end
   
   it "should allow watchers still" do

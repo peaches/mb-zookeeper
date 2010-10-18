@@ -3,9 +3,15 @@ class ZooKeeper
 
     def initialize(host, number_of_connections=10, args = {})
       @connection_args = args
+      if args[:watcher] and args[:watcher] != :default
+        raise "You cannot specify a custom watcher on a connection pool. You will be given an event_handler on each connection"
+      else
+        @connection_args[:watcher] = :default
+      end
       @number_of_connections = number_of_connections
       @host = host
       @pool = ::Queue.new
+
       populate_pool!
     end
 
@@ -41,7 +47,17 @@ private
 
     def populate_pool!
       @number_of_connections.times do
-        @pool.push ZooKeeper.new(@host, @connection_args)
+        connection = ZooKeeper.new(@host, @connection_args)
+        handler_id = connection.watcher.register_state_handler(WatcherEvent::KeeperStateSyncConnected) do |event, zk|
+          checkin(zk)
+          connection.watcher.unregister_state_handler(event.state, handler_id)
+        end
+
+        # incase we missed the watcher
+        if connection.connected?
+          connection.watcher.unregister_state_handler(WatcherEvent::KeeperStateSyncConnected, handler_id)
+          checkin(connection)
+        end
       end
     end
 

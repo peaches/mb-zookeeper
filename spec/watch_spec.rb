@@ -26,18 +26,6 @@ describe ZooKeeper do
     callback_called.should be_true
   end
 
-  it "should be able to handle state changes" do
-    pending 'close disables the watcher'
-#    disconnect_called = false
-#    @zk.watcher.register_state_handler(ZooKeeper::WatcherEvent::KeeperStateDisconnected) do |event, zk|
-#      disconnect_called = true
-#      event.state.should == ZooKeeper::WatcherEvent::KeeperStateDisconnected
-#    end
-#    @zk.close!
-#    sleep 0.3
-#    disconnect_called.should be_true
-  end
-
   def wait_until(timeout=10, &block)
     time_to_stop = Time.now + timeout
     until yield do

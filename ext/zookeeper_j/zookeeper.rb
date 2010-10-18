@@ -43,11 +43,15 @@ class ZooKeeper < JZooKeeper
   # Returns if ZooKeeper is in the closed state
   def closed?
     getState() == States::CLOSED
+  rescue Exception => e
+    raise KeeperException.by_code(e.code)
   end
   
   # Returns if ZooKeeper is in the connected state
   def connected?
     getState() == States::CONNECTED
+  rescue Exception => e
+    raise KeeperException.by_code(e.code)
   end
   
   # Create a node with the given path. The node data will be the given data, and node acl will be the given acl.  The path is returned.
@@ -263,7 +267,8 @@ class ZooKeeper < JZooKeeper
       stat = exists(path, watch)
       return stat.nil? ? nil : Stat.new(stat.to_a)
     end
-
+  rescue Exception => e
+    raise KeeperException.by_code(e.code)
   end
 
   def close!
@@ -365,6 +370,8 @@ class ZooKeeper < JZooKeeper
     else
       super(path, version)
     end
+  rescue Exception => e
+    raise KeeperException.by_code(e.code)
   end
 
   # Return the list of the children of the node of the given path.
@@ -416,6 +423,8 @@ class ZooKeeper < JZooKeeper
     else
       getChildren(path, watch).to_a
     end
+  rescue Exception => e
+    raise KeeperException.by_code(e.code)
   end
   
   # Return the ACL and stat of the node of the given path.
@@ -461,6 +470,8 @@ class ZooKeeper < JZooKeeper
     else
       [getACL(path, stat).collect {|acl| acl.to_ruby}, Stat.new(stat.to_a)]
     end
+  rescue Exception => e
+    raise KeeperException.by_code(e.code)
   end
   
   # Add authentication information.
@@ -484,6 +495,8 @@ class ZooKeeper < JZooKeeper
   def add_auth_info(auth, args = {})
     scheme = args[:scheme] || "digest"
     super(scheme, auth.to_java_bytes)
+  rescue Exception => e
+    raise KeeperException.by_code(e.code)
   end
 
   # Set the ACL for the node of the given path if such a node exists and the given version matches the version of the node. Return the stat of the node.
