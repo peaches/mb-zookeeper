@@ -40,7 +40,7 @@ You first register your path with the event handler (if you're using the default
   client.exists?("/mypath", :watch => true) #false
   client.create("/mypath", "mydata", :mode => :ephemeral)
   # the registered block above will fire within a few hundred miliseconds
-  sleep 0.2
+  sleep 0.8
 
   << got an event on "/mypath"
 

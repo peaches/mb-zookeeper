@@ -30,16 +30,17 @@ describe ZooKeeper::ConnectionPool do
   end
   
   it "should allow watchers still" do
+    locker = Mutex.new
     callback_called = false
     @connection_pool.checkout do |zk|
       zk.watcher.register("/_testWatch") do |event, zk|
-        callback_called = true
+        locker.synchronize { callback_called = true }
         event.path.should == "/_testWatch"
       end
       zk.exists?("/_testWatch", :watch => true)
     end
     @connection_pool.checkout {|zk| zk.create("/_testWatch", "", :mode => :ephemeral) }
-    sleep 0.3
+    wait_until { locker.synchronize { callback_called } }
     callback_called.should be_true
   end
 
