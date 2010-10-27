@@ -1,5 +1,7 @@
+ZOOKEEPER_ROOT = File.expand_path(File.join(File.dirname(__FILE__), '..'))
+
 if defined?(JRUBY_VERSION)
-  require 'zookeeper_j/zookeeper'
+  require "#{ZOOKEEPER_ROOT}/ext/zookeeper_j/zookeeper"
 else
   require 'zookeeper_c/zookeeper'
 end
