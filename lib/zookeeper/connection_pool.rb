@@ -12,6 +12,8 @@ class ZooKeeper
       @host = host
       @pool = ::Queue.new
 
+      @log_stream = args[:log_stream]
+
       populate_pool!
     end
 
@@ -50,6 +52,8 @@ private
         mutex, did_checkin = Mutex.new, false
 
         connection = ZooKeeper.new(@host, @connection_args)
+        connection.set_log_stream(@log_stream) if @log_stream
+
         handler_id = connection.watcher.register_state_handler(WatcherEvent::KeeperStateSyncConnected) do |event, zk|
           mutex.synchronize do
             unless did_checkin

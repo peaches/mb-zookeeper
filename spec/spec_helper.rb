@@ -11,7 +11,8 @@ RSpec.configure do |config|
   config.before(:all) do
     ZooKeeperTestServer.start
     wait_until { ZooKeeperTestServer.running? }
-    @test_connection = ZooKeeper.new("localhost:2181", :watcher => :default)
+    @log_stream = File.open('/dev/null', 'w')
+    @test_connection = ZooKeeper.new("localhost:2181", :watcher => :default, :log_stream => @log_stream)
     wait_until{ @test_connection.connected? }
     @test_connection.close!
   end

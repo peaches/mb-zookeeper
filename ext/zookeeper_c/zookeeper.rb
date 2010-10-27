@@ -18,6 +18,8 @@ class ZooKeeper < CZookeeper
       setup_watcher_thread!(event_queue)
     end
     super(host, event_queue)
+    @log_stream = args[:log_stream]
+    set_log_stream(@log_stream) if @log_stream
     wait_until(10) { connected? }
   end
   

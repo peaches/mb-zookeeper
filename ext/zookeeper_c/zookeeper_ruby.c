@@ -6,6 +6,7 @@
 #define THREADED
 
 #include "ruby.h"
+#include "rubyio.h"
 
 #include "c-client-src/zookeeper.h"
 #include <errno.h>
@@ -399,8 +400,15 @@ static VALUE method_state(VALUE self) {
 
 #warning [emaland] make this a class method or global
 static VALUE method_set_log_stream(VALUE self, VALUE stream) {
+  rb_io_t *fptr;
+  FILE *fp_stream;
+
+  Check_Type(stream, T_FILE);
+  
   // convert stream to FILE*
-  FILE *fp_stream = (FILE*)stream;
+  GetOpenFile(stream, fptr);
+  fp_stream = GetWriteFile(fptr);
+  rb_iv_set(self, "@_log_stream", stream);  // keep a reference to this IO object
   zoo_set_log_stream(fp_stream);
   return Qnil;
 }
