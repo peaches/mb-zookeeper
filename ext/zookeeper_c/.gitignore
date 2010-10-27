@@ -1,0 +1,6 @@
+Makefile
+bin
+include
+lib
+*.bundle
+*.o
