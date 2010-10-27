@@ -14,25 +14,19 @@ describe ZooKeeper do
   end
 
   it "should call back to path registers" do
+    locker = Mutex.new
     callback_called = false
 
     @zk.watcher.register("/_testWatch") do |event, zk|
-      callback_called = true
+      locker.synchronize do
+        callback_called = true
+      end
       event.path.should == "/_testWatch"
     end
     @zk.exists?("/_testWatch", :watch => true)
     @zk.create("/_testWatch", "", :mode => :ephemeral)
-    sleep 0.3
+    wait_until(5) { locker.synchronize { callback_called } }
     callback_called.should be_true
   end
-
-  def wait_until(timeout=10, &block)
-    time_to_stop = Time.now + timeout
-    until yield do
-      break if Time.now > time_to_stop
-      sleep 0.3
-    end
-  end
-
 
 end
