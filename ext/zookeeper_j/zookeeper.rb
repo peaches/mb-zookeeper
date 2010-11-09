@@ -44,14 +44,14 @@ class ZooKeeper < JZooKeeper
   def closed?
     getState() == States::CLOSED
   rescue Exception => e
-    raise_keeper_exception(e)
+    raise_keeper_exception(e, caller)
   end
   
   # Returns if ZooKeeper is in the connected state
   def connected?
     getState() == States::CONNECTED
   rescue Exception => e
-    raise_keeper_exception(e)
+    raise_keeper_exception(e, caller)
   end
   
   # Create a node with the given path. The node data will be the given data, and node acl will be the given acl.  The path is returned.
@@ -154,7 +154,7 @@ class ZooKeeper < JZooKeeper
       super(path, data.to_java_bytes, java_acls, java_mode)
     end
   rescue Exception => e
-    raise_keeper_exception(e)
+    raise_keeper_exception(e, caller)
   end
 
   # Return the data and stat of the node of the given path.  
@@ -212,7 +212,7 @@ class ZooKeeper < JZooKeeper
       [String.from_java_bytes(getData(path, watch, stat)), Stat.new(stat.to_a)]
     end
   rescue Exception => e
-    raise_keeper_exception(e)
+    raise_keeper_exception(e, caller)
   end
   
   
@@ -267,7 +267,7 @@ class ZooKeeper < JZooKeeper
       return stat.nil? ? nil : Stat.new(stat.to_a)
     end
   rescue Exception => e
-    raise_keeper_exception(e)
+    raise_keeper_exception(e, caller)
   end
 
   def close!
@@ -319,7 +319,7 @@ class ZooKeeper < JZooKeeper
       setData(path, data.to_java_bytes, version)
     end
   rescue Exception => e
-    raise_keeper_exception(e)
+    raise_keeper_exception(e, caller)
   end
 
   # Delete the node with the given path. The call will succeed if such a node exists, and the given version matches the node's version (if the given version is -1, 
@@ -370,7 +370,7 @@ class ZooKeeper < JZooKeeper
       super(path, version)
     end
   rescue Exception => e
-    raise_keeper_exception(e)
+    raise_keeper_exception(e, caller)
   end
 
   # Return the list of the children of the node of the given path.
@@ -423,7 +423,7 @@ class ZooKeeper < JZooKeeper
       getChildren(path, watch).to_a
     end
   rescue Exception => e
-    raise_keeper_exception(e)
+    raise_keeper_exception(e, caller)
   end
   
   # Return the ACL and stat of the node of the given path.
@@ -470,7 +470,7 @@ class ZooKeeper < JZooKeeper
       [getACL(path, stat).collect {|acl| acl.to_ruby}, Stat.new(stat.to_a)]
     end
   rescue Exception => e
-    raise_keeper_exception(e)
+    raise_keeper_exception(e, caller)
   end
   
   # Add authentication information.
@@ -495,7 +495,7 @@ class ZooKeeper < JZooKeeper
     scheme = args[:scheme] || "digest"
     super(scheme, auth.to_java_bytes)
   rescue Exception => e
-    raise_keeper_exception(e)
+    raise_keeper_exception(e, caller)
   end
 
   # Set the ACL for the node of the given path if such a node exists and the given version matches the version of the node. Return the stat of the node.
@@ -528,13 +528,13 @@ class ZooKeeper < JZooKeeper
       super(path, acls.collect{|acl| Zk::ACL.to_java(acl)}, version)
     end
   rescue Exception => e
-    raise_keeper_exception(e)
+    raise_keeper_exception(e, caller)
   end
 
 private
-  def raise_keeper_exception(e)
-    if e.respond_to?('code')
-      raise KeeperException.by_code(e.code)
+  def raise_keeper_exception(e, orig_caller)
+    if e.respond_to?(:code) and KeeperException.recognized_code?(e.code)
+      raise KeeperException.by_code(e.code), nil, orig_caller
     else
       raise e
     end
