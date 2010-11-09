@@ -1,4 +1,4 @@
 module Zookeeper
-  VERSION = '0.3.3.rc3'
+  VERSION = '0.3.3.rc4'
 end
 

@@ -69,7 +69,7 @@ class KeeperException < Exception
     ERROR_MAP.include?(code)
   end
     
-  def self.by_code(code, orig_caller)
+  def self.by_code(code)
     ERROR_MAP.fetch(code.to_i) { raise "API ERROR: no exception defined for code: #{code}" }
   end
 end
