@@ -44,7 +44,6 @@ class KeeperException < Exception
   class AuthFailed              < KeeperException; end
 
   ERROR_MAP = {
-    OK                      => Ok,
     SYSTEMERROR             => SystemError,
     RUNTIMEINCONSISTENCY    => RunTimeInconsistency,
     DATAINCONSISTENCY       => DataInconsistency,
