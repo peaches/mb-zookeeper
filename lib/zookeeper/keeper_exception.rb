@@ -1,4 +1,4 @@
-class KeeperException < Exception
+class KeeperException < StandardError
 
   OK                      = 0
   # System and server-side errors
