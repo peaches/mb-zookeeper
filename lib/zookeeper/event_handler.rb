@@ -6,7 +6,7 @@ class ZooKeeper
 
     def initialize(zookeeper_client)
       @zk = zookeeper_client
-      @callbacks = {}
+      @callbacks = Hash.new { |h,k| h[k] = [] }
     end
 
     def handle_process(event)
@@ -22,20 +22,21 @@ class ZooKeeper
     end
 
     def register(path, &block)
-      @callbacks[path] ||= []
-      subscription = EventHandlerSubscription.new(self, path, block)
-      @callbacks[path] << subscription
-      return subscription
+      EventHandlerSubscription.new(self, path, block).tap do |subscription|
+        @callbacks[path] << subscription
+      end
     end
 
     def register_state_handler(state, &block)
-      @callbacks["state_#{state}"] ||= []
-      @callbacks["state_#{state}"] << block
-      return @callbacks["state_#{state}"].index(block)
+      register("state_#{state}", &block)
     end
 
-    def unregister_state_handler(state, index)
-      @callbacks["state_#{state}"][index] = nil 
+    def unregister_state_handler(*args)
+      if args.first.is_a?(EventHandlerSubscription)
+        unregister(args.first)
+      else
+        unregister("state_#{args.first}", args[1])
+      end
     end
 
     def unregister(*args)
