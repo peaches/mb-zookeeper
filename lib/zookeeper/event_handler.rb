@@ -23,8 +23,9 @@ class ZooKeeper
 
     def register(path, &block)
       @callbacks[path] ||= []
-      @callbacks[path] << block
-      return @callbacks[path].index(block)
+      subscription = EventHandlerSubscription.new(self, path, block)
+      @callbacks[path] << subscription
+      return subscription
     end
 
     def register_state_handler(state, &block)
@@ -37,10 +38,19 @@ class ZooKeeper
       @callbacks["state_#{state}"][index] = nil 
     end
 
-    def unregister(path, index)
-      @callbacks[path][index] = nil
+    def unregister(*args)
+      if args.first.is_a?(EventHandlerSubscription)
+        subscription = args.first
+        ary = @callbacks[subscription.path]
+        if index = ary.index(subscription)
+          ary[index] = nil
+        end
+      else
+        path, index = args[0..1]
+        @callbacks[path][index] = nil
+      end
     end
-
+  
     if defined?(JRUBY_VERSION)
       def process(event)
         handle_process(ZooKeeper::WatcherEvent.new(event.type.getIntValue, event.state.getIntValue, event.path))
