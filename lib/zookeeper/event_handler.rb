@@ -26,6 +26,7 @@ class ZooKeeper
         @callbacks[path] << subscription
       end
     end
+    alias :subscribe :register
 
     def register_state_handler(state, &block)
       register("state_#{state}", &block)
@@ -51,6 +52,7 @@ class ZooKeeper
         @callbacks[path][index] = nil
       end
     end
+    alias :unsubscribe :unregister
   
     if defined?(JRUBY_VERSION)
       def process(event)

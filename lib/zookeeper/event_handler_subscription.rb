@@ -9,6 +9,7 @@ class ZooKeeper
     def unsubscribe
       @event_handler.unregister(self)
     end
+    alias :unregister :unsubscribe
  
     def call(event, zk)
       callback.call(event,zk)
