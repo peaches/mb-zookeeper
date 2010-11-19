@@ -13,6 +13,7 @@ end
 $includes = " -I#{HERE}/include"
 $libraries = " -L#{HERE}/lib"
 $CFLAGS = "#{$includes} #{$libraries} "
+
 $LDFLAGS = "#{$libraries} "
 $LIBPATH = ["#{HERE}/lib"]
 $DEFLIBPATH = []
@@ -24,7 +25,13 @@ Dir.chdir(HERE) do
   raise "'#{cmd}' failed" unless system(cmd)
 
   Dir.chdir(BUNDLE_PATH) do
-    puts(cmd = "./configure --prefix=#{HERE} --disable-shared --disable-dependency-tracking #{$EXTRA_CONF} 2>&1")
+    config_cmd = ["./configure --prefix=#{HERE} --disable-dependency-tracking"]
+
+    config_cmd << '--disable-shared' if Config::CONFIG['target_os'] != 'linux'
+
+    config_cmd << "#{$EXTRA_CONF} 2>&1"
+
+    puts(cmd = config_cmd.join(' '))
     raise "'#{cmd}' failed" unless system(cmd)
     puts(cmd = "make -d 2>&1")
     raise "'#{cmd}' failed" unless system(cmd)
