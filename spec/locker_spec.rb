@@ -48,25 +48,24 @@ describe ZooKeeper::Locker do
     @zk.locker("my/multi/part/path").lock!.should be_true
   end
 
-  describe "blocking lock" do
-    it "should blocking lock" do
-      first_lock = @zk.locker("mylock")
-      first_lock.lock!.should be_true
-      second_lock_called = false
-      thread = Thread.new do
-        @zk.locker("mylock").with_lock do
-          second_lock_called = true
-        end
+  it "should blocking lock" do
+    array = []
+    first_lock = @zk.locker("mylock")
+    first_lock.lock!.should be_true
+    array << :first_lock
+
+    thread = Thread.new do
+      @zk.locker("mylock").with_lock do
+        array << :second_lock
       end
-      second_lock_called.should be_false
-      first_lock.unlock!
-      thread.join(10)
-      second_lock_called.should be_true
+      array.length.should == 2
     end
 
-
+    array.length.should == 1
+    first_lock.unlock!
+    thread.join(10)
+    array.length.should == 2
   end
-  
 
 
 end
