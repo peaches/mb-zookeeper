@@ -6,7 +6,7 @@ class ZooKeeper
 
     def initialize(zookeeper_client)
       @zk = zookeeper_client
-      @callbacks = {}
+      @callbacks = Hash.new { |h,k| h[k] = [] }
     end
 
     def handle_process(event)
@@ -22,25 +22,38 @@ class ZooKeeper
     end
 
     def register(path, &block)
-      @callbacks[path] ||= []
-      @callbacks[path] << block
-      return @callbacks[path].index(block)
+      EventHandlerSubscription.new(self, path, block).tap do |subscription|
+        @callbacks[path] << subscription
+      end
     end
+    alias :subscribe :register
 
     def register_state_handler(state, &block)
-      @callbacks["state_#{state}"] ||= []
-      @callbacks["state_#{state}"] << block
-      return @callbacks["state_#{state}"].index(block)
+      register("state_#{state}", &block)
     end
 
-    def unregister_state_handler(state, index)
-      @callbacks["state_#{state}"][index] = nil 
+    def unregister_state_handler(*args)
+      if args.first.is_a?(EventHandlerSubscription)
+        unregister(args.first)
+      else
+        unregister("state_#{args.first}", args[1])
+      end
     end
 
-    def unregister(path, index)
-      @callbacks[path][index] = nil
+    def unregister(*args)
+      if args.first.is_a?(EventHandlerSubscription)
+        subscription = args.first
+        ary = @callbacks[subscription.path]
+        if index = ary.index(subscription)
+          ary[index] = nil
+        end
+      else
+        path, index = args[0..1]
+        @callbacks[path][index] = nil
+      end
     end
-
+    alias :unsubscribe :unregister
+  
     if defined?(JRUBY_VERSION)
       def process(event)
         handle_process(ZooKeeper::WatcherEvent.new(event.type.getIntValue, event.state.getIntValue, event.path))
