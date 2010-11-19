@@ -14,9 +14,7 @@ class ZooKeeper
 
     def lock!
       path = lock_path(@path)
-      if !@zk.exists?(path)
-        @zk.create(path, "", :mode => :persistent)
-      end
+      @zk.create(path, "", :mode => :persistent) rescue KeeperException::NodeExists
       @lock_file = @zk.create("#{path}/lock", "", :mode => :ephemeral_sequential)
       lock_files = @zk.children(path)
       lock_files.sort! {|a,b| digit_from_lock_file(a) <=> digit_from_lock_file(b)}
