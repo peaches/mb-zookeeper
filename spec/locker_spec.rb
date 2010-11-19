@@ -3,8 +3,8 @@ require File.join(File.dirname(__FILE__), %w[spec_helper])
 describe ZooKeeper::Locker do
 
   before(:each) do
-    @zk = ZooKeeper.new("localhost:2181")
-    @zk2 = ZooKeeper.new("localhost:2181")
+    @zk = ZooKeeper.new("localhost:2181", :watcher => :default)
+    @zk2 = ZooKeeper.new("localhost:2181", :watcher => :default)
     wait_until{ @zk.connected? && @zk2.connected? }
     @path_to_lock = "/lock_tester"
   end
@@ -47,7 +47,25 @@ describe ZooKeeper::Locker do
   it "should be able to handle multi part path locks" do
     @zk.locker("my/multi/part/path").lock!.should be_true
   end
-  
+
+  it "should blocking lock" do
+    array = []
+    first_lock = @zk.locker("mylock")
+    first_lock.lock!.should be_true
+    array << :first_lock
+
+    thread = Thread.new do
+      @zk.locker("mylock").with_lock do
+        array << :second_lock
+      end
+      array.length.should == 2
+    end
+
+    array.length.should == 1
+    first_lock.unlock!
+    thread.join(10)
+    array.length.should == 2
+  end
 
 
 end

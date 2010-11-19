@@ -1,4 +1,4 @@
-class KeeperException < Exception
+class KeeperException < StandardError
 
   OK                      = 0
   # System and server-side errors
@@ -42,30 +42,34 @@ class KeeperException < Exception
   class InvalidCallback         < KeeperException; end
   class InvalidACL              < KeeperException; end
   class AuthFailed              < KeeperException; end
+
+  ERROR_MAP = {
+    SYSTEMERROR             => SystemError,
+    RUNTIMEINCONSISTENCY    => RunTimeInconsistency,
+    DATAINCONSISTENCY       => DataInconsistency,
+    CONNECTIONLOSS          => ConnectionLoss,
+    MARSHALLINGERROR        => MarshallingError,
+    UNIMPLEMENTED           => Unimplemented,
+    OPERATIONTIMEOUT        => OperationTimeOut,
+    BADARGUMENTS            => BadArguments,
+    APIERROR                => ApiError,
+    NONODE                  => NoNode,
+    NOAUTH                  => NoAuth,
+    BADVERSION              => BadVersion,
+    NOCHILDRENFOREPHEMERALS => NoChildrenForEphemerals,
+    NODEEXISTS              => NodeExists,
+    NOTEMPTY                => NotEmpty,
+    SESSIONEXPIRED          => SessionExpired,
+    INVALIDCALLBACK         => InvalidCallback,
+    INVALIDACL              => InvalidACL,
+    AUTHFAILED              => AuthFailed,
+  }
+
+  def self.recognized_code?(code)
+    ERROR_MAP.include?(code)
+  end
     
   def self.by_code(code)
-    case code
-    when OK: Ok
-    when SYSTEMERROR: SystemError
-    when RUNTIMEINCONSISTENCY: RunTimeInconsistency
-    when DATAINCONSISTENCY: DataInconsistency
-    when CONNECTIONLOSS: ConnectionLoss
-    when MARSHALLINGERROR: MarshallingError
-    when UNIMPLEMENTED: Unimplemented
-    when OPERATIONTIMEOUT: OperationTimeOut
-    when BADARGUMENTS: BadArguments
-    when APIERROR: ApiError
-    when NONODE: NoNode
-    when NOAUTH: NoAuth
-    when BADVERSION: BadVersion
-    when NOCHILDRENFOREPHEMERALS: NoChildrenForEphemerals 
-    when NODEEXISTS: NodeExists              
-    when NOTEMPTY: NotEmpty                
-    when SESSIONEXPIRED: SessionExpired          
-    when INVALIDCALLBACK: InvalidCallback         
-    when INVALIDACL: InvalidACL
-    when AUTHFAILED: AuthFailed
-    else raise Exception.new("no exception defined for code #{code}")
-    end
+    ERROR_MAP.fetch(code.to_i) { raise "API ERROR: no exception defined for code: #{code}" }
   end
 end

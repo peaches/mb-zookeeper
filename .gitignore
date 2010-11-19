@@ -2,3 +2,4 @@
 .DS_Store
 mkmf.log
 *.gem
+Gemfile.lock
