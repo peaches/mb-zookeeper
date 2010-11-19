@@ -43,6 +43,20 @@ class ZooKeeper
       @pool.push(connection)
     end
 
+    #lock lives on past the connection checkout
+    def locker(path)
+      checkout do |connection|
+        connection.locker(path)
+      end
+    end
+
+    #prefer this method if you can (keeps connection checked out)
+    def with_lock(path, &block)
+      checkout do |connection|
+        connection.locker(path).with_lock(&block)
+      end
+    end
+
 private
 
     def populate_pool!
