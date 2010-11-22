@@ -43,13 +43,16 @@ class ZooKeeper
     def unregister(*args)
       if args.first.is_a?(EventHandlerSubscription)
         subscription = args.first
-        ary = @callbacks[subscription.path]
-        if index = ary.index(subscription)
-          ary[index] = nil
-        end
+      elsif args.first.is_a?(String) and args[1].is_a?(EventHandlerSubscription)
+        subscription = args[1]
       else
         path, index = args[0..1]
         @callbacks[path][index] = nil
+        return
+      end
+      ary = @callbacks[subscription.path]
+      if index = ary.index(subscription)
+        ary[index] = nil
       end
     end
     alias :unsubscribe :unregister

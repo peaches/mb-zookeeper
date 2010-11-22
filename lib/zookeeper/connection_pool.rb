@@ -57,6 +57,13 @@ class ZooKeeper
       end
     end
 
+    # handle all
+    def method_missing(meth, *args, &block)
+      checkout do |connection|
+        connection.send(meth, *args, &block)
+      end
+    end
+
 private
 
     def populate_pool!
@@ -64,20 +71,20 @@ private
         mutex, did_checkin = Mutex.new, false
 
         connection = ZooKeeper.new(@host, @connection_args)
-        handler_id = connection.watcher.register_state_handler(WatcherEvent::KeeperStateSyncConnected) do |event, zk|
+        subscription = connection.watcher.register_state_handler(WatcherEvent::KeeperStateSyncConnected) do |event, zk|
           mutex.synchronize do
             unless did_checkin
               checkin(zk)
               did_checkin = true
             end
           end
-          connection.watcher.unregister_state_handler(event.state, handler_id)
+          subscription.unsubscribe
         end
 
         mutex.synchronize do
           # incase we missed the watcher
           if connection.connected? and not did_checkin
-            connection.watcher.unregister_state_handler(WatcherEvent::KeeperStateSyncConnected, handler_id)
+            subscription.unsubscribe
             checkin(connection)
             did_checkin = true
           end
