@@ -1,6 +1,6 @@
 class ZooKeeper
   class EventHandler
-    import org.apache.zookeeper.Watcher if defined?(JRUBY_VERSION)
+    import org.apache.zookeeper.Watcher if defined?(JZooKeeper)
 
     attr_accessor :zk
 
@@ -32,24 +32,7 @@ class ZooKeeper
       register("state_#{state}", &block)
     end
 
-    def unregister_state_handler(*args)
-      if args.first.is_a?(EventHandlerSubscription)
-        unregister(args.first)
-      else
-        unregister("state_#{args.first}", args[1])
-      end
-    end
-
-    def unregister(*args)
-      if args.first.is_a?(EventHandlerSubscription)
-        subscription = args.first
-      elsif args.first.is_a?(String) and args[1].is_a?(EventHandlerSubscription)
-        subscription = args[1]
-      else
-        path, index = args[0..1]
-        @callbacks[path][index] = nil
-        return
-      end
+    def unregister(subscription)
       ary = @callbacks[subscription.path]
       if index = ary.index(subscription)
         ary[index] = nil
@@ -57,7 +40,7 @@ class ZooKeeper
     end
     alias :unsubscribe :unregister
   
-    if defined?(JRUBY_VERSION)
+    if defined?(JZooKeeper)
       def process(event)
         handle_process(ZooKeeper::WatcherEvent.new(event.type.getIntValue, event.state.getIntValue, event.path))
       end

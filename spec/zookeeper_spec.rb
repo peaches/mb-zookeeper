@@ -3,7 +3,7 @@ require File.join(File.dirname(__FILE__), %w[spec_helper])
 describe ZooKeeper, "with no paths" do
 
   before(:each) do
-    @zk = ZooKeeper.new("localhost:2181", :watcher => nil)
+    @zk = ZooKeeper.new("localhost:2181", :watcher => false)
     wait_until{ @zk.connected? }
     delete_test!
   end

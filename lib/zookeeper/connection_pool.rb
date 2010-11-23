@@ -69,7 +69,6 @@ private
     def populate_pool!
       @number_of_connections.times do
         mutex, did_checkin = Mutex.new, false
-
         connection = ZooKeeper.new(@host, @connection_args)
         subscription = connection.watcher.register_state_handler(WatcherEvent::KeeperStateSyncConnected) do |event, zk|
           mutex.synchronize do
