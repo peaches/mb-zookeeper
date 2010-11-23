@@ -4,18 +4,24 @@ class ZooKeeper < CZookeeper
 
   attr_accessor :watcher
 
-  def initialize(host, args = {})
+  def initialize(host, opts = {})
     # timeout = args[:timeout] || DEFAULTS[:timeout]
     event_queue = false
+    watcher_opt = opts.delete(:watcher)
     @watcher =
-        if args[:watcher] == :default
+        if watcher_opt === false
+          nil
+        elsif !watcher_opt || watcher_opt == :default
           EventHandler.new(self)
         else
-          args[:watcher]
+          opts[:watcher]
         end
     if (@watcher)
       event_queue = Queue.new
       setup_watcher_thread!(event_queue)
+    end
+    if opts[:setup_chroot]
+      handle_chroot_setup(host, opts)
     end
     super(host, event_queue)
     wait_until(10) { connected? }

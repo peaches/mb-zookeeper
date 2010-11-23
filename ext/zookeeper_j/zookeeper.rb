@@ -28,15 +28,21 @@ class ZooKeeper < JZooKeeper
   #   zk = ZooKeeper.new("localhost:2181,localhost:3000")
   #   zk = ZooKeeper.new(:host => "localhost:2181", :watcher => MyWatcher.new)
   #   zk = ZooKeeper.new(:host => "localhost:2181,localhost:3000", :timeout => 10000, :watcher => MyWatcher.new)
-  def initialize(host, args = {})
-    timeout = args[:timeout] || DEFAULTS[:timeout]
+  def initialize(host, opts = {})
+    timeout = opts[:timeout] || DEFAULTS[:timeout]
+    watcher_opt = opts.delete(:watcher)
     @watcher =
-        if args[:watcher] == :default
+        if watcher_opt === false
+          JavaSilentWatcher.new
+        elsif !watcher_opt || watcher_opt == :default
           EventHandler.new(self)
         else
-          args[:watcher] || JavaSilentWatcher.new
+          opts[:watcher]
         end
     @watcher.extend Zk::Watcher
+    if opts[:setup_chroot]
+      handle_chroot_setup(host, opts)
+    end
     super(host, timeout, @watcher)
   end
   

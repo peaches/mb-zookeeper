@@ -3,7 +3,7 @@ require File.join(File.dirname(__FILE__), %w[spec_helper])
 describe ZooKeeper do
 
   before(:each) do
-    @zk = ZooKeeper.new("localhost:2181", :watcher => :default)
+    @zk = ZooKeeper.new("localhost:2181")
     wait_until { @zk.connected? }
   end
 

@@ -33,10 +33,7 @@ class ZooKeeper
     end
 
     def unregister(subscription)
-      ary = @callbacks[subscription.path]
-      if index = ary.index(subscription)
-        ary[index] = nil
-      end
+      @callbacks[subscription.path].delete(subscription)
     end
     alias :unsubscribe :unregister
   
