@@ -1,5 +1,6 @@
 class ZooKeeper
   # this isn't really used in this gem
+  # @private
   # :nodoc:
   class Id
     attr_reader :scheme, :identification 

@@ -1,5 +1,4 @@
-module Zookeeper
-  # :nodoc:
-  VERSION = '0.3.5.rc3'
+class ZooKeeper
+  # @private
+  VERSION = '0.3.5.rc4'
 end
-

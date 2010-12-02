@@ -14,9 +14,11 @@ class ZooKeeper
   #   end
   class MessageQueue
 
+    # @private
     # :nodoc:
     attr_accessor :zk
 
+    # @private
     # :nodoc:
     def initialize(zookeeper_client, queue_name, queue_root = "/_zkqueues")
       @zk = zookeeper_client

@@ -1,2 +1,5 @@
 --readme README
 --title 'ZooKeeper Api Documentation'
+--exclude ext
+lib/zookeeper/*
+lib/zookeeper.rb

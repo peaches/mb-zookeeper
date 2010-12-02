@@ -4,10 +4,10 @@ class ZooKeeper
   # @see http://hadoop.apache.org/zookeeper/docs/r3.0.0/recipes.html#sc_recipes_Locks Zookeeper docs
   class Locker
 
-    # :nodoc:
+    # @private
     attr_accessor :zk
 
-    # :nodoc:
+    # @private
     def initialize(zookeeper_client, name, root_lock_node = "/_zklocking")
       @zk = zookeeper_client
       @root_lock_node = root_lock_node

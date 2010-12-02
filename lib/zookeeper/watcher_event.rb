@@ -4,6 +4,7 @@ class ZooKeeper
   class WatcherEvent
     attr_reader :type, :state, :path
 
+    # @private
     # :nodoc:
     def initialize(type, state, path) 
       @type, @state, @path = type, state, path

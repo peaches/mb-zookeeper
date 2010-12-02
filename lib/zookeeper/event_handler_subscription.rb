@@ -5,6 +5,7 @@ class ZooKeeper
   class EventHandlerSubscription
     attr_accessor :event_handler, :path, :callback
 
+    # @private
     # :nodoc:
     def initialize(event_handler, path, callback)
       @event_handler, @path, @callback = event_handler, path, callback
@@ -17,6 +18,7 @@ class ZooKeeper
     end
     alias :unregister :unsubscribe
 
+    # @private
     # :nodoc:
     def call(event, zk)
       callback.call(event,zk)

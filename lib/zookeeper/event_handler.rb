@@ -7,9 +7,11 @@ class ZooKeeper
   class EventHandler
     import org.apache.zookeeper.Watcher if defined?(JRUBY_VERSION)
 
+    # @private
     # :nodoc:
     attr_accessor :zk
 
+    # @private
     # :nodoc:
     def initialize(zookeeper_client)
       @zk = zookeeper_client
@@ -72,11 +74,13 @@ class ZooKeeper
     alias :unsubscribe :unregister
 
     if defined?(JRUBY_VERSION)
+      # @private
       # :nodoc:
       def process(event)
         handle_process(ZooKeeper::WatcherEvent.new(event.type.getIntValue, event.state.getIntValue, event.path))
       end
     else
+      # @private
       # :nodoc:
       def process(event)
         handle_process(event)

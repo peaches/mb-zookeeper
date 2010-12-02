@@ -1,5 +1,6 @@
 class ZooKeeper
   # not really used in this gem
+  # @private
   # :nodoc:
   module Permission
     READ   = 1 << 0

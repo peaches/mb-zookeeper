@@ -25,6 +25,7 @@ require 'zookeeper/logging'
 #   zk = ZooKeeper.new("localhost:2181")
 #   zk.create("/my_path")
 class ZooKeeper
+
   DEFAULTS = {
     :timeout => 10000
   }
