@@ -1,16 +1,7 @@
-== THIS FORK (tobowers):
+This was originally forked from http://github.com/davidgiffin/zookeeper
+It has heavy modifications
 
-I had a lot of trouble with the original so I forked this off http://github.com/davidgiffin/zookeeper/tree/
-Ephemeral is now the default.
-create "mode" can now be any one of: :persistent_sequential, :ephemeral_sequential, :persistent, :ephemeral
-default is :ephemeral
-so creates look like this:
-
-    @zk.create("/test", "test_data", :mode => :persistent)
-
-More info can be found in ext/zookeeper_j/zookeeper.rb
-
-=== INSTALLING THIS FORK (tobowers):
+=== INSTALLING:
 
 ==== MRI
 
@@ -112,49 +103,11 @@ zookeeper
 
 Ruby Interface to Apache's ZooKeeper http://zookeeper.wiki.sourceforge.net/
 
-
-== FEATURES/PROBLEMS:
-
-Work in progress -- most of the needed ZooKeeper methods have been supported.
-Queue was a hacked copy from the Java Tutorial on the site --- will refactor into a useable Recipe at some point.
-ACL issues exist in ZooKeeper that have been patched, but patch only seems to work on trunk (Revision 176).  See https://issues.apache.org/jira/browse/ZOOKEEPER-48
-
-== TODO
-
-Extend support for Ruby using ZooKeeper C API's
-
-== SYNOPSIS:
-
-Given a running ZooKeeper server listening for a client connection on port 2181:
-
-  zk = ZooKeeper.new(:host => "localhost:2181")
-  zk.create(:path => "/test", :data => "test_data")
-  
-See spec/zookeeper_spec for expected use and behaviour.
-
-== REQUIREMENTS:
-
-ZooKeeper installed and running.
-
-I built zookeeper from source with the ACL patch https://issues.apache.org/jira/secure/attachment/12384350/acl_3.patch applied
-
-For MRI version, ZooKeeper C client library (http://zookeeper.sourceforge.net/)
-
-== INSTALL:
-
-gem install smingins-zookeeper --source=http://gems.github.com/
-
-jruby -S  gem install smingins-zookeeper --source=http://gems.github.com/
-
-== TESTS:
-
-To run specs for MRI version execute extconf.rb to create makefile and then run make to create zookeeper_c.bundle, then run specs.
-
 == LICENSE:
 
 (The MIT License)
 
-Copyright (c) 2008 Shane Mingins)
+Copyright (c) 2008 Shane Mingins and Topping Bowers
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
