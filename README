@@ -6,7 +6,7 @@ create "mode" can now be any one of: :persistent_sequential, :ephemeral_sequenti
 default is :ephemeral
 so creates look like this:
 
-@zk.create("/test", "test_data", :mode => :persistent)
+    @zk.create("/test", "test_data", :mode => :persistent)
 
 More info can be found in ext/zookeeper_j/zookeeper.rb
 
@@ -19,8 +19,8 @@ gem install zookeeper-0.3.gem
 
 ==== JRUBY
 
-jruby -S gem build zookeeper.gemspec
-jruby -S gem install zookeeper-0.3-java.gem
+    jruby -S gem build zookeeper.gemspec
+    jruby -S gem install zookeeper-0.3-java.gem
 
 
 === (this fork) Event Handling
@@ -30,79 +30,79 @@ Default is *no* watcher (:watch => true) will be ignored.
 
 You first register your path with the event handler (if you're using the default).
 
-  client = ZooKeeper.new("localhost:2181", :watcher => :default)
-  client.watcher.register("/mypath") do |event, zk|
-    # here the event will be a ZooKeeper::WatcherEvent object and zk
-    # will be the original client
-    $stderr.puts "got an event on #{event.path}"
-  end
-  # then we register a watch
-  client.exists?("/mypath", :watch => true) #false
-  client.create("/mypath", "mydata", :mode => :ephemeral)
-  # the registered block above will fire within a few hundred miliseconds
-  sleep 0.8
+    client = ZooKeeper.new("localhost:2181", :watcher => :default)
+    client.watcher.register("/mypath") do |event, zk|
+      # here the event will be a ZooKeeper::WatcherEvent object and zk
+      # will be the original client
+      $stderr.puts "got an event on #{event.path}"
+    end
+    # then we register a watch
+    client.exists?("/mypath", :watch => true) #false
+    client.create("/mypath", "mydata", :mode => :ephemeral)
+    # the registered block above will fire within a few hundred miliseconds
+    sleep 0.8
 
-  << got an event on "/mypath"
+    << got an event on "/mypath"
 
 === (this fork) Locking
 
-  client1 = ZooKeeper.new("localhost:2181", :watcher => :default)  
-  client2 = ZooKeeper.new("localhost:2181", :watcher => :default)
+    client1 = ZooKeeper.new("localhost:2181", :watcher => :default)
+    client2 = ZooKeeper.new("localhost:2181", :watcher => :default)
 
-  lock1 = client1.locker("/mypath")
-  lock1.lock #true
+    lock1 = client1.locker("/mypath")
+    lock1.lock #true
 
-  lock2 = client2.locker("/mypath")
-  lock2.lock #false
+    lock2 = client2.locker("/mypath")
+    lock2.lock #false
 
-  lock1.unlock #true
-  lock2.lock #true
+    lock1.unlock #true
+    lock2.lock #true
 
-  # locks are also released on a client close/crash
-  lock1.lock #false
-  client2.close!
-  lock1.lock #true
+    # locks are also released on a client close/crash
+    lock1.lock #false
+    client2.close!
+    lock1.lock #true
 
 === (this fork) Message Queue
-  client1 = ZooKeeper.new("localhost:2181", :watcher => :default)
-  client2 = ZooKeeper.new("localhost:2181", :watcher => :default)
+    client1 = ZooKeeper.new("localhost:2181", :watcher => :default)
+    client2 = ZooKeeper.new("localhost:2181", :watcher => :default)
 
-  publisher = client1.queue("myqueue")
-  receiver = client2.queue("myqueue")
+    publisher = client1.queue("myqueue")
+    receiver = client2.queue("myqueue")
 
-  receiver.subscribe do |title, data|
-    # data will be whatever was published, title will be the node name
-    # for the message
+    receiver.subscribe do |title, data|
+      # data will be whatever was published, title will be the node name
+      # for the message
 
-    $stderr.puts "got a message with: #{data}"
+      $stderr.puts "got a message with: #{data}"
 
-    # having a true state from the block will mark the message as 'answered'
-    # sending back a false will requeue
+      # having a true state from the block will mark the message as 'answered'
+      # sending back a false will requeue
 
-    true
-  end
+      true
+    end
 
-  publisher.publish("my data!")
+    publisher.publish("my data!")
 
-  << got a message with: my data!
+    << got a message with: my data!
 
 === (this fork) Connection Pools
 
 For rails like apps - to do single writes... we can make a pool
 with checkin and checkout capabilities.
 
-  pool = ZooKeeper::ConnectionPool.new("localhost:2181", 10, :watcher => false)
-  pool.checkout do |client|
-    #do stuff with the client
-    client.exists?("blah")
-  end
-  # client is checked back into the pool
-  # if there are no clients available - checkout blocks
-  # but you can override that like so:
+    pool = ZooKeeper::ConnectionPool.new("localhost:2181", 10, :watcher => false)
+    pool.checkout do |client|
+      #do stuff with the client
+      client.exists?("blah")
+    end
+    # client is checked back into the pool
+    # if there are no clients available - checkout blocks
+    # but you can override that like so:
 
-  connection = pool.checkout(false)
-  # now if there are no clients available - checkout will simply return
-  # false
+    connection = pool.checkout(false)
+    # now if there are no clients available - checkout will simply return
+    # false
 
 zookeeper
     by Shane Mingins

@@ -1,26 +1,32 @@
 class ZooKeeper
+  # this is the default watcher provided by the zookeeper connection
+  # and is used to monitor all watch events on any paths
+  # watchers are implemented by adding the :watch => true flag to
+  # any #children or #get or #exists calls
+  # you never really need to initialize this yourself
   class EventHandler
     import org.apache.zookeeper.Watcher if defined?(JRUBY_VERSION)
 
+    # :nodoc:
     attr_accessor :zk
 
+    # :nodoc:
     def initialize(zookeeper_client)
       @zk = zookeeper_client
       @callbacks = Hash.new { |h,k| h[k] = [] }
     end
 
-    def handle_process(event)
-      if event.path and !event.path.empty? and @callbacks[event.path]
-        @callbacks[event.path].each do |callback|
-          callback.call(event, @zk) if callback.respond_to?(:call)
-        end
-      elsif (!event.path || event.path.empty?) and @callbacks["state_#{event.state}"]
-        @callbacks["state_#{event.state}"].each do |callback|
-          callback.call(event, @zk) if callback.respond_to?(:call)
-        end
-      end
-    end
-
+    # register a path with the handler
+    # your block will be called with all events on that path.
+    # aliased as #subscribe
+    # @param [String] path the path you want to listen to
+    # @param [Block] block the block to execute when a watch event happpens
+    # @yield [connection, event] We will call your block with the connection the
+    #   watch event occured on and the event object
+    # @return [ZooKeeper::EventHandlerSubscription] the subscription object
+    #   you can use to to unsubscribe from an event
+    # @see ZooKeeper::WatcherEvent
+    # @see ZooKeeper::EventHandlerSubscription
     def register(path, &block)
       EventHandlerSubscription.new(self, path, block).tap do |subscription|
         @callbacks[path] << subscription
@@ -28,10 +34,16 @@ class ZooKeeper
     end
     alias :subscribe :register
 
+    # registers a "state of the connection" handler
+    # @param [String] state the state you want to register for
+    # @param [Block] block the block to execute on state changes
+    # @yield [connection, event] yields your block with
     def register_state_handler(state, &block)
       register("state_#{state}", &block)
     end
 
+    # @deprecated use #unsubscribe on the subscription object
+    # @see ZooKeeper::EventHandlerSubscription#unsubscribe
     def unregister_state_handler(*args)
       if args.first.is_a?(EventHandlerSubscription)
         unregister(args.first)
@@ -40,6 +52,8 @@ class ZooKeeper
       end
     end
 
+    # @deprecated use #unsubscribe on the subscription object
+    # @see ZooKeeper::EventHandlerSubscription#unsubscribe
     def unregister(*args)
       if args.first.is_a?(EventHandlerSubscription)
         subscription = args.first
@@ -56,15 +70,31 @@ class ZooKeeper
       end
     end
     alias :unsubscribe :unregister
-  
+
     if defined?(JRUBY_VERSION)
+      # :nodoc:
       def process(event)
         handle_process(ZooKeeper::WatcherEvent.new(event.type.getIntValue, event.state.getIntValue, event.path))
       end
     else
+      # :nodoc:
       def process(event)
         handle_process(event)
       end
     end
+
+  protected
+    def handle_process(event)
+      if event.path and !event.path.empty? and @callbacks[event.path]
+        @callbacks[event.path].each do |callback|
+          callback.call(event, @zk) if callback.respond_to?(:call)
+        end
+      elsif (!event.path || event.path.empty?) and @callbacks["state_#{event.state}"]
+        @callbacks["state_#{event.state}"].each do |callback|
+          callback.call(event, @zk) if callback.respond_to?(:call)
+        end
+      end
+    end
+
   end
 end

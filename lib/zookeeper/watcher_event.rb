@@ -1,7 +1,10 @@
 class ZooKeeper
+  # event object returned to your subscription blocks
+  # @see ZooKeeper::EventHandler#subscribe
   class WatcherEvent
     attr_reader :type, :state, :path
-    
+
+    # :nodoc:
     def initialize(type, state, path) 
       @type, @state, @path = type, state, path
     end

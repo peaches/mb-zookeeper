@@ -1,3 +1,4 @@
+# these errors are returned rather than the driver level errors
 class KeeperException < StandardError
 
   OK                      = 0

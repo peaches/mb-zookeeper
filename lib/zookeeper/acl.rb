@@ -1,4 +1,6 @@
 class ZooKeeper
+  # this isn't really used in this gem
+  # :nodoc:
   class ACL
     attr_reader :permissions, :id
     

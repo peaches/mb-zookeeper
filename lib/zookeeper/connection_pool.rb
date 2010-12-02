@@ -1,9 +1,19 @@
 class ZooKeeper
+  # create a connection pool useful for multithreaded applications
+  # @example
+  #   pool = ZooKeeper::ConnectionPool.new("localhost:2181", 10)
+  #   pool.checkout do |zk|
+  #     zk.create("/mynew_path")
   class ConnectionPool
 
-    def initialize(host, number_of_connections=10, args = {})
-      @connection_args = args
-      if args[:watcher] and args[:watcher] != :default
+    # initialize a connection pool using the same optons as ZooKeeper.new
+    # @param String host the same arguments as ZooKeeper.new
+    # @param Integer number_of_connections the number of connections to put in the pool
+    # @param optional Hash opts Options to pass on to each connection
+    # @return ZooKeeper::ConnectionPool
+    def initialize(host, number_of_connections=10, opts = {})
+      @connection_args = opts
+      if opts[:watcher] and opts[:watcher] != :default
         raise "You cannot specify a custom watcher on a connection pool. You will be given an event_handler on each connection"
       else
         @connection_args[:watcher] = :default
@@ -15,6 +25,8 @@ class ZooKeeper
       populate_pool!
     end
 
+    # close all the connections on the pool
+    # @param optional Boolean graceful allow the checked out connections to come back first?
     def close_all!(graceful=false)
       if graceful
         until @pool.num_waiting == 0 do
@@ -29,6 +41,11 @@ class ZooKeeper
       end
     end
 
+    # checkout a connection from the pool - takes a block which will check it
+    # back in after the block is finished
+    # @param optional [Boolean] blocking If blocking is set to false then false will be returned
+    #   if no connection is available
+    # @yield [connection] The checked out connection
     def checkout(blocking = true, &block)
       if block
         checkout_checkin_with_block(block)
