@@ -3,7 +3,7 @@ require 'zookeeper/version'
 
 Gem::Specification.new do |s|
   s.name = %q{mb-zookeeper}
-  s.version = ZooKeeper::VERSION
+  s.version = Zookeeper::VERSION
   s.specification_version = 2 if s.respond_to? :specification_version=
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
