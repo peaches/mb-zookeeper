@@ -155,7 +155,7 @@ static VALUE method_delete(VALUE self, VALUE path, VALUE version) {
 }
 
 static VALUE method_get(VALUE self, VALUE path, VALUE watch) {
-  char data[1024];
+  char data[8192];
   int data_len = sizeof(data);
 
   struct Stat stat;
