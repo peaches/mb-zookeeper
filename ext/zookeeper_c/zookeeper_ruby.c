@@ -85,7 +85,7 @@ static VALUE method_initialize(VALUE self, VALUE hostPort, VALUE eventQueue) {
   zoo_set_debug_level(ZOO_LOG_LEVEL_INFO);
   zoo_deterministic_conn_order(1);
   zk->eventQueue = eventQueue;
-  zk->zh = zookeeper_init(RSTRING(hostPort)->ptr, watcher, 10000, &zk->myid, (struct zk_rb_data*)zk, 0);
+  zk->zh = zookeeper_init(RSTRING_PTR(hostPort), watcher, 10000, &zk->myid, (struct zk_rb_data*)zk, 0);
   if (!zk->zh) {
     rb_raise(rb_eRuntimeError, "error connecting to zookeeper: %d", errno);
   }
@@ -106,7 +106,7 @@ static VALUE method_get_children(VALUE self, VALUE path, VALUE watch) {
   Check_Type(path, T_STRING);
   FETCH_DATA_PTR(self, zk);
 
-  check_errors(zoo_get_children(zk->zh, RSTRING(path)->ptr, (watch != Qfalse && watch != Qnil), &strings));
+  check_errors(zoo_get_children(zk->zh, RSTRING_PTR(path), (watch != Qfalse && watch != Qnil), &strings));
 
   output = rb_ary_new();
   for (i = 0; i < strings.count; ++i) {
@@ -121,7 +121,7 @@ static VALUE method_exists(VALUE self, VALUE path, VALUE watch) {
   Check_Type(path, T_STRING);
   FETCH_DATA_PTR(self, zk);
 
-  check_errors(zoo_exists(zk->zh, RSTRING(path)->ptr, (watch != Qfalse && watch != Qnil), &stat));
+  check_errors(zoo_exists(zk->zh, RSTRING_PTR(path), (watch != Qfalse && watch != Qnil), &stat));
 
   return array_from_stat(&stat);
 }
@@ -135,8 +135,8 @@ static VALUE method_create(VALUE self, VALUE path, VALUE value, VALUE flags) {
 
   FETCH_DATA_PTR(self, zk);
 
-  check_errors(zoo_create(zk->zh, RSTRING(path)->ptr,
-                          RSTRING(value)->ptr, RSTRING(value)->len,
+  check_errors(zoo_create(zk->zh, RSTRING_PTR(path),
+                          RSTRING_PTR(value), RSTRING_LEN(value),
 			  &ZOO_OPEN_ACL_UNSAFE, FIX2INT(flags),
                           realpath, sizeof(realpath)));
 
@@ -149,7 +149,7 @@ static VALUE method_delete(VALUE self, VALUE path, VALUE version) {
 
   FETCH_DATA_PTR(self, zk);
 
-  check_errors(zoo_delete(zk->zh, RSTRING(path)->ptr, FIX2INT(version)));
+  check_errors(zoo_delete(zk->zh, RSTRING_PTR(path), FIX2INT(version)));
 
   return Qtrue;
 }
@@ -164,7 +164,7 @@ static VALUE method_get(VALUE self, VALUE path, VALUE watch) {
   Check_Type(path, T_STRING);
   FETCH_DATA_PTR(self, zk);
 
-  check_errors(zoo_get(zk->zh, RSTRING(path)->ptr, (watch != Qfalse && watch != Qnil), data, &data_len, &stat));
+  check_errors(zoo_get(zk->zh, RSTRING_PTR(path), (watch != Qfalse && watch != Qnil), data, &data_len, &stat));
 
   return rb_ary_new3(2,
 		     rb_str_new(data, data_len),
@@ -177,8 +177,8 @@ static VALUE method_set(VALUE self, VALUE path, VALUE data, VALUE version)
   FETCH_DATA_PTR(self, zk);
 
   check_errors(zoo_set(zk->zh,
-                       RSTRING(path)->ptr,
-                       RSTRING(data)->ptr, RSTRING(data)->len,
+                       RSTRING_PTR(path),
+                       RSTRING_PTR(data), RSTRING_LEN(data),
                        FIX2INT(version)));
 
   return Qtrue;
@@ -217,8 +217,8 @@ static VALUE method_set_acl(int argc, VALUE* argv, VALUE self) {
 
 /*   Data_Get_Struct(rb_iv_get(self, "@data"), struct zk_rb_data, zk); */
 
-/*   check_errors(zoo_set(zk->zh, RSTRING(v_path)->ptr,  */
-/*                        RSTRING(v_data)->ptr, RSTRING(v_data)->len,  */
+/*   check_errors(zoo_set(zk->zh, RSTRING_PTR(v_path),  */
+/*                        RSTRING_PTR(v_data), RSTRING_LEN(v_data),  */
 /*                        FIX2INT(v_version))); */
 
   return Qnil;
@@ -254,8 +254,8 @@ static VALUE method_add_auth(VALUE self, VALUE scheme,
   Check_Type(cert, T_STRING);
   //  Check_Type(completion, T_OBJECT); // ???
 
-  check_errors(zoo_add_auth(zk->zh, RSTRING(scheme)->ptr,
-                            RSTRING(cert)->ptr, RSTRING(cert)->len,
+  check_errors(zoo_add_auth(zk->zh, RSTRING_PTR(scheme),
+                            RSTRING_PTR(cert), RSTRING_LEN(cert),
                             void_completion_callback, DATA_PTR(completion_data)));
   return Qtrue;
 }
@@ -268,7 +268,7 @@ static VALUE method_async(VALUE self, VALUE path,
   Check_Type(path, T_STRING);
   //  Check_Type(completion, T_OBJECT); // ???
 
-  check_errors(zoo_async(zk->zh, RSTRING(path)->ptr,
+  check_errors(zoo_async(zk->zh, RSTRING_PTR(path),
                          string_completion_callback, DATA_PTR(completion_data)));
 
   return Qtrue;
@@ -357,7 +357,7 @@ static VALUE method_get_acl(VALUE self, VALUE path) {
   //                     struct Stat *stat);
   struct ACL_vector acl;
   struct Stat stat;
-  check_errors(zoo_get_acl(zk->zh, RSTRING(path)->ptr, &acl, &stat));
+  check_errors(zoo_get_acl(zk->zh, RSTRING_PTR(path), &acl, &stat));
 
   VALUE result = rb_ary_new();
   rb_ary_push(result, acl_vector_to_ruby(&acl));
